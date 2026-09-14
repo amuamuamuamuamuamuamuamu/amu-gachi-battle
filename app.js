@@ -95,6 +95,19 @@ function openGrowth(){
 }
 $('openGrowth').onclick=openGrowth;
 
+// ページ間移動の戻る操作を右上の×ボタンへ統一する。
+const closeStyle=document.createElement('style');closeStyle.textContent='.card{position:relative}.page-close{position:absolute!important;right:14px;top:14px;width:42px!important;height:42px;padding:0!important;border:2px solid #d4a83e!important;border-radius:50%!important;background:#241238!important;color:#ffe26a!important;font-size:28px!important;font-weight:900!important;line-height:1!important;z-index:30}.card>.small:not(.page-close){display:none!important}';document.head.appendChild(closeStyle);
+function installPageClose(){
+  document.querySelectorAll('.card').forEach(view=>{
+    if(view.id==='admin'||view.id==='register'||view.id==='main'||view.querySelector('.page-close'))return;
+    const old=[...view.querySelectorAll('button')].find(b=>/戻る|キャンセル|閉じる|close/i.test(b.textContent||'')&&!b.classList.contains('page-close'));
+    const close=document.createElement('button');close.className='page-close';close.type='button';close.setAttribute('aria-label','閉じる');close.textContent='×';
+    close.onclick=old?.onclick||(()=>renderMain());
+    if(old)old.style.display='none';view.prepend(close);
+  });
+}
+const pageCloseObserver=new MutationObserver(installPageClose);pageCloseObserver.observe(document.body,{childList:true,subtree:true});installPageClose();
+
 // 対戦画面のQR最終表示。旧来の複数の生成処理に失敗しても、必ず画像として描画する。
 const previousBattleOpen=openBattle;
 openBattle=async function(){
