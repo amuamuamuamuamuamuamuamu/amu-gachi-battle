@@ -77,6 +77,7 @@ finishBattle=function(enemy){
 $('openBattleHistory').onclick=renderBattleHistory;
 $('battleHistoryBack').onclick=renderMain;
 const historyStyle=document.createElement('style');historyStyle.textContent='.history-row{display:flex;flex-direction:column;gap:6px;text-align:left;padding:14px 16px;margin:10px 0;border:2px solid #d4a83e;border-radius:12px;background:#fffaf0}.history-row strong{color:#d4a83e;font-size:20px}.history-row span{font-weight:700}.history-row small{opacity:.75}';document.head.appendChild(historyStyle);
+const mainCoreImageStyle=document.createElement('style');mainCoreImageStyle.textContent='#mainMonster .monster-img{display:none!important}';document.head.appendChild(mainCoreImageStyle);
 
 // 最終版の対戦画面。旧画面の onclick が残っていても必ずこの画面を開く。
 openBattle=async function(){
