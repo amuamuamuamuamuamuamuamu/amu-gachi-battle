@@ -37,6 +37,25 @@ const baseRenderMain=renderMain;baseRenderMain;renderMain=function(){state.monst
 function openCoreImageIssue(){show('summonView');const view=$('summonView');view.innerHTML=`<button id="closeIssue" aria-label="閉じる" style="display:block;margin:0 0 8px auto;width:42px;height:42px;border:3px solid #125b3c;border-radius:50%;background:#ffe26a;color:#125b3c;font-size:26px;font-weight:900;line-height:1">×</button><h1>モンスター発行画面</h1><p class="sub">カメラで大切な画像を撮影してください。</p><video id="coreCamera" autoplay playsinline style="display:block;width:100%;aspect-ratio:1/1;object-fit:cover;border:3px solid #125b3c;border-radius:14px;background:#173b2b"></video><canvas id="coreCanvas" class="hidden"></canvas><input id="coreFile" type="file" accept="image/*" capture="environment" hidden><button id="captureCore" class="big-button summon" style="margin-top:14px">モンスターのコアとなる画像を撮影する</button><p id="coreStatus" class="sensor">カメラを準備しています。</p>`;let stream=null;const video=$('coreCamera'),status=$('coreStatus');navigator.mediaDevices?.getUserMedia({video:{facingMode:'environment',aspectRatio:{ideal:1}},audio:false}).then(s=>{stream=s;video.srcObject=s;status.textContent='カメラの下のボタンを押してください。'}).catch(()=>{status.textContent='カメラを起動できません。ボタンから画像を選択してください。'});$('closeIssue').onclick=()=>{stream?.getTracks().forEach(t=>t.stop());renderMain()};$('captureCore').onclick=()=>{if(video.videoWidth){const c=$('coreCanvas'),size=Math.min(video.videoWidth,video.videoHeight),sx=(video.videoWidth-size)/2,sy=(video.videoHeight-size)/2;c.width=480;c.height=480;c.getContext('2d').drawImage(video,sx,sy,size,size,0,0,480,480);birthFromImage(c.toDataURL('image/jpeg',.78));return}$('coreFile').click()};$('coreFile').onchange=e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>birthFromImage(r.result);r.readAsDataURL(f)};async function birthFromImage(imageData){stream?.getTracks().forEach(t=>t.stop());candidate={name:GAME_DATA.names[Math.floor(Math.random()*GAME_DATA.names.length)],imageData,feeling:'元気',stats:initialStats()};try{const response=await fetch('/api/monsters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({room,trainer:state.userName,name:candidate.name,imageData:candidate.imageData,stats:candidate.stats})});if(!response.ok)throw new Error('保存失敗')}catch{status.textContent='サーバー保存に失敗しました。再度撮影してください。';return}renderResult();$('resultView').querySelector('h1').textContent='モンスター誕生';$('resultNotice').textContent='画像をサーバーに保存してモンスターが発行されました。'}}
 startMonsterIssue=openCoreImageIssue;$('openSummon').onclick=openCoreImageIssue;
 
+// QR表示の最終保証：後段のUI差し替え後も、必ず実データ入り画像を表示する。
+function renderMonsterQRs(){
+  document.querySelectorAll('[data-monster-qr]').forEach(canvas=>{
+    const box=canvas.parentElement;
+    if(!box)return;
+    const text=decodeURIComponent(canvas.dataset.monsterQr||'');
+    box.innerHTML='';
+    const img=document.createElement('img');
+    img.alt='対戦用QRコード'; img.width=68; img.height=68;
+    img.src='https://api.qrserver.com/v1/create-qr-code/?size=180x180&format=png&data='+encodeURIComponent(text);
+    img.onerror=()=>{img.alt='QRコードを読み込めませんでした';box.textContent='QR読込失敗';};
+    box.appendChild(img);
+  });
+}
+const finalRenderMain=renderMain, finalRenderWarehouse=renderWarehouse;
+renderMain=function(){finalRenderMain();setTimeout(renderMonsterQRs,50)};
+renderWarehouse=function(){finalRenderWarehouse();setTimeout(renderMonsterQRs,50)};
+setTimeout(renderMonsterQRs,100);
+
 // 最終版の対戦画面。旧画面の onclick が残っていても必ずこの画面を開く。
 openBattle=async function(){
   const view=$('battleView');
