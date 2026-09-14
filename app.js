@@ -79,6 +79,20 @@ $('battleHistoryBack').onclick=renderMain;
 const historyStyle=document.createElement('style');historyStyle.textContent='.history-row{display:flex;flex-direction:column;gap:6px;text-align:left;padding:14px 16px;margin:10px 0;border:2px solid #d4a83e;border-radius:12px;background:#fffaf0}.history-row strong{color:#d4a83e;font-size:20px}.history-row span{font-weight:700}.history-row small{opacity:.75}';document.head.appendChild(historyStyle);
 const mainCoreImageStyle=document.createElement('style');mainCoreImageStyle.textContent='#mainMonster .monster-img{display:none!important}';document.head.appendChild(mainCoreImageStyle);
 
+// 対戦画面のQR最終表示。旧来の複数の生成処理に失敗しても、必ず画像として描画する。
+const previousBattleOpen=openBattle;
+openBattle=async function(){
+  await previousBattleOpen();
+  const box=$('battleQr'),me=state.monsters.find(x=>monsterId(x,0)===state.selectedMonsterId)||state.monsters.at(-1);
+  if(!box||!me)return;
+  const payload=JSON.stringify({type:'amu-monster-battle',name:me.name,imageData:me.imageData||'',stats:me.stats||[]});
+  box.innerHTML='';box.style.cssText='display:flex!important;justify-content:center;align-items:center;margin:12px auto 18px;padding:10px;background:#fff;width:210px;height:210px;border-radius:10px;min-height:210px';
+  const img=document.createElement('img');img.alt='対戦用QRコード';img.width=190;img.height=190;img.style.cssText='display:block;width:190px;height:190px';
+  img.src='https://api.qrserver.com/v1/create-qr-code/?size=400x400&format=png&data='+encodeURIComponent(payload);
+  img.onerror=()=>{box.textContent='QRコード画像の読み込みに失敗しました';};box.appendChild(img);
+};
+$('openBattle').onclick=openBattle;
+
 // 最終版の対戦画面。旧画面の onclick が残っていても必ずこの画面を開く。
 openBattle=async function(){
   const view=$('battleView');
