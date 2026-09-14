@@ -1,6 +1,6 @@
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),room=params.get('room'),roomKey=`amu-summon-room-${room||1}`;let state={userName:'',monsters:[]},touch=null,place=null,voiceDone=false,candidate=null,recordTimer=null;const fixedStatNames=['攻撃力','体力','命中率','回心率'];
 try{state=JSON.parse(localStorage.getItem(roomKey))||state}catch{};state.selectedMonsterId??=null;if(state.statsVersion!==2){state.monsters.forEach(m=>m.stats=initialStats());state.statsVersion=2};const save=()=>localStorage.setItem(roomKey,JSON.stringify(state));
-function show(id){['admin','register','main','summonView','resultView','warehouseView','battleView'].forEach(x=>$(x)?.classList.toggle('hidden',x!==id))}
+function show(id){['admin','register','main','summonView','resultView','warehouseView','battleView','battleHistoryView'].forEach(x=>$(x)?.classList.toggle('hidden',x!==id))}
 function monsterCard(m){const n=m.imageNumber||1;return `<div class="monster-title-row"><h2 class="name">${m.name}</h2><span class="qr-wrap"><canvas class="monster-qr" data-monster-qr="${encodeURIComponent(JSON.stringify({type:'amu-monster-battle',name:m.name,imageNumber:n,feeling:m.feeling||'元気',stats:m.stats||[]}))}"></canvas></span></div><img class="monster-img" src="進化モンスター/モンスター${n}/1.png" alt="${m.name}"><div class="mood">今の気持ち：${m.feeling||'元気'}</div><div class="stats">${(m.stats||GAME_DATA.stats.slice(0,4).map(name=>({name,value:50}))).map(s=>`<div class="stat">${s.name}：${s.value}<div class="bar"><div class="fill" style="width:${s.value}%"></div></div></div>`).join('')}</div>`}
 function monsterId(m,i){return m.id||(m.id=`${Date.now()}-${i}-${Math.random().toString(36).slice(2)}`)}
 function renderMain(){show('main');$('breederName')?.remove();$('main').insertAdjacentHTML('afterbegin',`<div id="breederName" class="breeder">召喚士：${state.userName}</div>`);const m=state.monsters.find(x=>monsterId(x,0)===state.selectedMonsterId)||state.monsters.at(-1);if(m)state.selectedMonsterId=monsterId(m,0);$('mainMonster').innerHTML=m?monsterCard(m):'<p class="empty">まだモンスターがいません。</p>';$('collectionCount').textContent=`モンスター：${state.monsters.length} / 10`;save()}
@@ -55,6 +55,28 @@ const finalRenderMain=renderMain, finalRenderWarehouse=renderWarehouse;
 renderMain=function(){finalRenderMain();setTimeout(renderMonsterQRs,50)};
 renderWarehouse=function(){finalRenderWarehouse();setTimeout(renderMonsterQRs,50)};
 setTimeout(renderMonsterQRs,100);
+
+// 対戦履歴：あむっちと同じく「誰と戦ったか」を残して一覧表示する。
+function battleHistory(){return Array.isArray(state.battleHistory)?state.battleHistory:[]}
+function renderBattleHistory(){
+  show('battleHistoryView');
+  const list=$('battleHistoryList'),history=battleHistory();
+  list.innerHTML=history.length?history.map(h=>`<article class="history-row"><strong>${h.result}</strong><span>対戦相手：${h.opponent||'不明なモンスター'}</span><small>${h.at||''}</small></article>`).join(''):'<p class="empty">まだ対戦履歴はありません。</p>';
+}
+function recordBattleHistory(enemy,result){
+  state.battleHistory=battleHistory();
+  state.battleHistory.unshift({opponent:enemy?.name||'不明なモンスター',result,at:new Date().toLocaleString('ja-JP')});
+  state.battleHistory=state.battleHistory.slice(0,50); save();
+}
+const historyOriginalFinish=finishBattle;
+finishBattle=function(enemy){
+  historyOriginalFinish(enemy);
+  const text=$('battleResult')?.textContent||'';
+  recordBattleHistory(enemy,text.includes('勝利')?'勝利':text.includes('敗北')?'敗北':'引き分け');
+};
+$('openBattleHistory').onclick=renderBattleHistory;
+$('battleHistoryBack').onclick=renderMain;
+const historyStyle=document.createElement('style');historyStyle.textContent='.history-row{display:flex;flex-direction:column;gap:6px;text-align:left;padding:14px 16px;margin:10px 0;border:2px solid #d4a83e;border-radius:12px;background:#fffaf0}.history-row strong{color:#d4a83e;font-size:20px}.history-row span{font-weight:700}.history-row small{opacity:.75}';document.head.appendChild(historyStyle);
 
 // 最終版の対戦画面。旧画面の onclick が残っていても必ずこの画面を開く。
 openBattle=async function(){
