@@ -21,7 +21,7 @@ body{color:var(--ink);background:linear-gradient(135deg,#120b24,#3a185f 55%,#160
 </style>
 <style>.ritual-step{padding:22px 10px;border:2px solid var(--ink);border-radius:14px;background:rgba(255,255,255,.72)}.ritual-step h2{margin:0 0 12px;text-align:center;font-size:20px}</style>
 </head>
-<body><main class="page">
+<body><main class="page"><style>.game-logo{position:absolute;left:14px;top:14px;width:120px;height:auto;object-fit:contain}.card{position:relative}.admin-logo,.main-logo{display:block}</style><img class="game-logo admin-logo" src="あむガチバトルロゴ.jpg" alt="あむガチバトル">
 <section id="admin" class="card"><h1>空いているアカウントを選んでください</h1><div class="room-list" id="roomList"></div></section>
 <section id="register" class="card hidden"><h1>召喚士の登録</h1><p class="sub">ユーザー名を登録してください。</p><input id="userNameInput" class="small" maxlength="20" placeholder="ユーザー名"><button id="registerUser" class="big-button summon" disabled>登録して進む</button></section>
 <section id="main" class="card hidden"><div id="mainMonster"></div><p class="sub" id="collectionCount"></p><div class="main-actions"><button id="openSummon" class="big-button summon">召喚する</button><button id="openWarehouse" class="big-button warehouse">モンスター倉庫</button><button id="openBattle" class="big-button battle">戦う</button><button id="openBattleHistory" class="big-button battle">対戦履歴</button><button id="openGrowth" class="big-button summon">育てる</button></div><button id="backAdmin" class="small" style="margin-top:18px">管理ページに戻る</button></section>
