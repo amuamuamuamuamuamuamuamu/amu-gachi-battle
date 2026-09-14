@@ -1,0 +1,4 @@
+GitHubアップロード用/
+node_modules/
+deploy-amu-summon.ps1
+*.log
