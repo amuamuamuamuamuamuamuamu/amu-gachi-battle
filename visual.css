@@ -24,6 +24,7 @@
 .battle-stage{position:relative;height:min(72vh,590px);min-height:490px;overflow:hidden;display:grid;grid-template-rows:minmax(0,1fr) 58px minmax(0,1fr);gap:4px;padding:10px;background:radial-gradient(circle at center,#fffbdc,#f7dc79);border:4px solid #18734b;border-radius:18px}
 .battle-fighter{position:relative;z-index:2;min-height:0;display:grid;grid-template-rows:minmax(90px,1fr) auto auto;align-items:center;text-align:center}
 .battle-enemy{grid-row:1;animation:battleEnterEnemy .8s ease-out both}.battle-self{grid-row:3;animation:battleEnterSelf .8s ease-out both}
+.battle-fighter.battle-ready{animation:none;opacity:1;transform:none}
 .battle-fighter img{display:block;width:100%;height:100%;min-height:90px;max-height:145px;object-fit:contain;filter:drop-shadow(0 7px 4px #173b2b55)}
 .battle-fighter h2{margin:0 0 3px;font-size:17px;line-height:1.1;color:#173b2b}
 .battle-vs{grid-row:2;z-index:3;align-self:center;text-align:center;font-size:48px;line-height:1;font-weight:1000;color:#f0b900;text-shadow:2px 2px 0 #173b2b;animation:vsPop .7s ease-out}

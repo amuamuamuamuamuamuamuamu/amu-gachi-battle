@@ -85,7 +85,8 @@ function showBattle(me,raw){
       setTimeout(step,1900);
     },550);
   };
-  setTimeout(step,1000);
+  setTimeout(()=>document.querySelectorAll('.battle-fighter').forEach(el=>el.classList.add('battle-ready')),850);
+  setTimeout(step,1200);
 }
 fight=(me,raw)=>showBattle(me,raw);
 document.addEventListener('click',event=>{if(event.target?.id==='fictionalBattle'){event.stopImmediatePropagation();const me=sel()||{id:'preview',name:'自分のモンスター',imageNumber:1,core:'',stats:initial()};showBattle(me,{name:me.name,imageNumber:me.imageNumber,imageData:me.core||'',stats:stats(me).map(s=>({...s}))})}},true);
