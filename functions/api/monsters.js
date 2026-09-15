@@ -4,6 +4,12 @@ export async function onRequest(context) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS monsters (id TEXT PRIMARY KEY, room TEXT NOT NULL, trainer TEXT NOT NULL, name TEXT NOT NULL, image_data TEXT NOT NULL, stats TEXT NOT NULL, history TEXT NOT NULL DEFAULT '[]', created_at TEXT NOT NULL)`).run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS battles (id TEXT PRIMARY KEY, room TEXT NOT NULL, trainer TEXT NOT NULL, opponent TEXT NOT NULL, result TEXT NOT NULL, logs TEXT NOT NULL, created_at TEXT NOT NULL)`).run();
   if (request.method === 'GET') {
+    const id = new URL(request.url).searchParams.get('id');
+    if (id) {
+      const monster = await env.DB.prepare('SELECT id, room, trainer, name, image_data, stats, history, created_at FROM monsters WHERE id = ?').bind(id).first();
+      if (!monster) return Response.json({error:'Monster not found'}, {status:404});
+      return Response.json(monster);
+    }
     const result = await env.DB.prepare('SELECT id, room, trainer, name, image_data, stats, history, created_at FROM monsters ORDER BY created_at DESC').all();
     return Response.json(result.results || []);
   }
