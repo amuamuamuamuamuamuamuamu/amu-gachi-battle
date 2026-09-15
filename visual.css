@@ -15,3 +15,7 @@
 
 /* 旧レイアウトと現行レイアウトの中間サイズ */
 .battle-arena{min-height:500px!important;grid-template-rows:minmax(170px,1fr) 54px minmax(170px,1fr)!important;gap:5px!important;padding:10px!important}.battle-arena .fighter img{height:105px!important}.battle-arena .fighter h2{font-size:18px;margin:4px}.battle-arena .stats,.battle-inline-stats{font-size:10px;gap:3px!important}.battle-arena .stat{padding:3px!important}.battle-arena .bar{height:5px}.battle-arena .vs-mark{font-size:48px}.battle-log-list{max-height:100px!important}
+
+/* メイン画面は見出しだけを名前として表示し、カード内の重複名を隠す */
+#app>.monster-card>.name{display:none}
+.qr{display:grid!important;place-items:center!important;min-height:220px!important;padding:12px!important;background:#fff!important;border:3px solid #125b3c!important;border-radius:12px!important}.qr img,.qr canvas{display:block!important;width:190px!important;height:190px!important}
