@@ -1,0 +1,52 @@
+あむガチバトル 技術的な仕様書
+
+1. 公開構成
+
+・フロントエンドはGitHubリポジトリ amu-gachi-battle のmainブランチからCloudflare Pagesへ自動デプロイする。
+・静的ファイルは index.html、app.js、visual.css、game-data.js と画像フォルダで構成する。
+・サーバー処理は Cloudflare Pages Functions の functions/api/monsters.js で行う。
+・永続データベースはCloudflare D1のDBバインディングを使用する。
+
+2. モンスター保存
+
+・モンスターはD1の monsters テーブルへ保存する。
+・保存項目は id、room、trainer、name、image_data、stats、history、created_at とする。
+・image_data は撮影したコア画像のData URLであり、ゲーム画面に表示する進化モンスター画像とは分離する。
+・stats は攻撃力、体力、命中率、回心率のJSON配列とする。
+・発行時は4項目をすべて1以上、合計6、各最大5に正規化する。
+・モンスター発行時とステータス変更時はPOST /api/monstersでINSERT OR REPLACEする。
+
+3. QRコード
+
+・QRデータは type、name、imageData、imageNumber、stats をJSON化する。
+・typeは amu-monster-battle 固定とする。
+・モンスター生成時とステータス変更時に qrText と qrImageUrl を内部生成し、対戦画面を開くまで待たない。
+・画面表示時は、まずqrcodejsのQRCodeコンストラクタでブラウザ内生成する。
+・qrcodejsが利用できない場合は、QR画像生成APIのURLをimg要素で表示する。
+・QR画像が読み込めない場合はエラー文を表示し、再度対戦画面を開くことで再試行できる。
+・相手QRはBarcodeDetectorのqr_code形式で読み取り、JSONを検証してから対戦を開始する。
+・カメラはgetUserMediaのvideoのみを使用し、audioはfalse、アスペクト比は1:1とする。
+
+4. 対戦処理
+
+・先攻はブラウザ内でランダム決定する。
+・先攻と後攻が交互に合計4回攻撃する。
+・命中率は1=50%、2=60%、3=70%、4=80%、5=90%とする。
+・会心率1は1倍、2〜5は30%抽選に成功した時だけ順に1.5、2、2.5、3倍とする。
+・攻撃後は対象の体力を減らし、4項目の体力ステータス欄の数値をrequestAnimationFrameでアニメーションする。
+・別体力表示は作らず、体力は4項目ステータス欄内だけに表示する。
+・バトル画面はスマートフォンの縦幅に収まる中間サイズとし、4項目は1列で表示する。
+・攻撃時は攻撃側の移動、被攻撃側の揺れ、トゲ形のダメージエフェクトを表示する。
+
+5. 履歴と管理
+
+・ブラウザ側では部屋ごとのlocalStorageに対戦履歴を保存する。
+・管理用モンスター一覧はGET /api/monstersでD1から取得する。
+・管理ページ2は写真、名前、トレーナー、部屋番号、保存日時を一覧表示する。
+・データの初期化や削除を行うAPIは設けず、既存データを保護する。
+
+6. 実装時の参照順
+
+・画面仕様とゲームルールは「あむガチバトル企画書.txt」を正本とする。
+・Cloudflare、D1、QR、対戦データ、フォールバック処理は本ファイルを参照する。
+・仕様変更時は本ファイルと企画書の両方を更新し、構文確認後にGitHubへpushする。

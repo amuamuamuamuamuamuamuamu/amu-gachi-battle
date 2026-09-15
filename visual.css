@@ -12,3 +12,6 @@
 
 /* 最終仕様：スマホ1画面に収める */
 .battle-arena{min-height:390px!important;grid-template-rows:minmax(130px,1fr) 42px minmax(130px,1fr)!important;gap:2px!important;padding:6px!important}.battle-arena .fighter img{height:72px!important}.battle-arena .fighter h2{font-size:16px;margin:2px}.battle-arena .stats,.battle-inline-stats{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:2px!important;width:100%!important;font-size:9px}.battle-arena .stat{padding:2px!important}.battle-arena .bar{height:4px}.battle-arena .vs-mark{font-size:38px}.battle-log-list{max-height:72px!important;margin:3px 0!important}.battle-log-list div{padding:3px!important;font-size:11px}
+
+/* 旧レイアウトと現行レイアウトの中間サイズ */
+.battle-arena{min-height:500px!important;grid-template-rows:minmax(170px,1fr) 54px minmax(170px,1fr)!important;gap:5px!important;padding:10px!important}.battle-arena .fighter img{height:105px!important}.battle-arena .fighter h2{font-size:18px;margin:4px}.battle-arena .stats,.battle-inline-stats{font-size:10px;gap:3px!important}.battle-arena .stat{padding:3px!important}.battle-arena .bar{height:5px}.battle-arena .vs-mark{font-size:48px}.battle-log-list{max-height:100px!important}
