@@ -196,7 +196,7 @@ admin=async function(){
   document.querySelector('#admin2').onclick=admin2;
 };
 
-const morningResetKey=key+'-five-digit-death-reset-20260916';
+const morningResetKey=key+'-global-reset-20260916-1';
 if(localStorage.getItem(morningResetKey)!=='done'){
   state={user:'',monsters:[],selected:null,history:[]};
   save();
