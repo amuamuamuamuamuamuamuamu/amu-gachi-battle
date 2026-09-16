@@ -1,6 +1,7 @@
 (() => {
 const root=document.querySelector('#app'),room=new URLSearchParams(location.search).get('room')||'1',key='amu-gachi-'+room,names=GAME_DATA.names||['モンスター'],statNames=['攻撃力','体力','命中率','回心率'];let state=JSON.parse(localStorage.getItem(key)||'null')||{user:'',monsters:[],selected:null,history:[]},stream=null,timer=null;
 const save=()=>localStorage.setItem(key,JSON.stringify(state)),sel=()=>state.monsters.find(m=>m.id===state.selected)||state.monsters.at(-1),img=m=>`進化モンスター/モンスター${m.imageNumber||1}/1.png`,stop=()=>{stream?.getTracks().forEach(t=>t.stop());stream=null;clearInterval(timer);timer=null},esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),stats=m=>{let a=statNames.map((n,i)=>({name:n,value:Math.max(1,Math.min(5,Number((m.stats||[])[i]?.value||1)))})),t=a.reduce((x,y)=>x+y.value,0);while(t>12){let x=a.find(y=>y.value>1);x.value--;t--}while(t<6){let x=a.find(y=>y.value<5);x.value++;t++}return a},statsHtml=m=>`<div class="stats">${stats(m).map(s=>`<div class="stat"><b>${s.name}</b> ${s.value}<div class="bar"><div class="fill" style="width:${s.value*20}%"></div></div></div>`).join('')}</div>`,card=(m,core=false)=>m?`<article class="monster-card"><img class="monster-img" src="${core?(m.core||''):img(m)}" alt="${esc(m.name)}"><h2 class="name">${esc(m.name)}</h2>${core?'':statsHtml(m)}</article>`:'<p class="center">モンスターがいません。</p>';
+if(Array.isArray(state.history)&&state.history.some(item=>item?.core)){state.history=state.history.map(({core,...item})=>item);save()}
 function shell(t,b,close=true){stop();root.innerHTML=`${close?'<button class="close" id="close">×</button>':''}<h1>${t}</h1>${b}`;if(close)document.querySelector('#close').onclick=main}
 function initial(){let a=[1,1,1,1];for(let i=0;i<2;i++){let c=a.map((v,j)=>v<5?j:-1).filter(j=>j>=0);a[c[Math.random()*c.length|0]]++}return statNames.map((name,i)=>({name,value:a[i]}))}
 function main(){if(!state.user)return register();let m=sel();shell(m?.name||'モンスター未登録',`<p class="center">トレーナー：${esc(state.user)}</p>${card(m)}<div class="actions"><button class="btn pink" id="issue">モンスターを発行</button><button class="btn gold" id="warehouse">モンスター倉庫</button><button class="btn purple" id="battle">対戦する</button><button class="btn gold" id="history">対戦履歴</button><button class="btn green" id="grow">育てる</button><button class="btn" id="core">モンスターのコア画像を見る</button></div><button class="btn" id="admin">管理ページに戻る</button>`,false);document.querySelector('#issue').onclick=()=>camera(false);document.querySelector('#warehouse').onclick=warehouse;document.querySelector('#battle').onclick=battle;document.querySelector('#history').onclick=history;document.querySelector('#grow').onclick=()=>camera(true);document.querySelector('#core').onclick=core;document.querySelector('#admin').onclick=()=>location.href=location.pathname}
@@ -132,7 +133,6 @@ function showSharedBattle(me,enemy,battleData,role){
     const won=battleData.winnerId===me.id,draw=!battleData.winnerId,result=draw?'引き分け':won?'勝利':'敗北';
     if(!won&&!draw){state.monsters=state.monsters.filter(monster=>monster.id!==me.id);if(state.selected===me.id)state.selected=state.monsters.at(-1)?.id||null}
     const record={opponent:enemy.name,result,date:new Date().toISOString(),logs:[...logs]};
-    if(won&&enemy.core)record.core=enemy.core;
     state.history.unshift(record);save();
     const captured=won&&enemy.core?'<p class="battle-result-note">奪取したモンスターのコア画像</p><img class="battle-result-core" src="'+enemy.core+'" alt="奪取したモンスターのコア画像"><div class="actions capture-actions"><button class="btn pink" id="saveCapturedCore">保存</button><button class="btn gold" id="discardCapturedCore">捨てる</button></div>':'';
     const defeated=!won&&!draw?'<p class="battle-result-note">負けたモンスターは死亡しました。</p>':'';
@@ -154,14 +154,22 @@ function showSharedBattle(me,enemy,battleData,role){
   setTimeout(step,850);
 }
 
-history=function(){shell('対戦履歴',state.history.length?state.history.map(item=>'<article class="history"><b>'+esc(item.result)+'</b>　'+esc(item.opponent)+'<br>'+esc(item.date)+(item.core?'<p>奪取したコア画像</p><img class="core-img" src="'+item.core+'" alt="奪取したコア画像">':'')+'</article>').join(''):'<p class="center">まだ対戦履歴はありません。</p>')};
+history=function(){shell('対戦履歴',state.history.length?state.history.map(item=>'<article class="history"><b>'+esc(item.result)+'</b>　'+esc(item.opponent)+'<br>'+esc(item.date)+'</article>').join(''):'<p class="center">まだ対戦履歴はありません。</p>')};
 
 core=function(){
   const monster=sel();
-  if(!monster)return shell('モンスターのコア画像','<p class="center">表示するモンスターがありません。</p>');
+  if(!monster)return shell('奪取したコア画像','<p class="center">表示するモンスターがありません。</p>');
   const captures=Array.isArray(monster.capturedCores)?monster.capturedCores:[];
   const capturedHtml=captures.length?'<section class="captured-core-list"><h2>保存したコア画像</h2>'+captures.map(item=>'<article class="captured-core"><img class="core-img" src="'+item.image+'" alt="'+esc(item.monsterName)+'のコア画像"><p><b>'+esc(item.monsterName)+'</b><br>トレーナー：'+esc(item.trainer||'不明')+'</p></article>').join('')+'</section>':'<p class="center">保存したコア画像はまだありません。</p>';
-  shell('モンスターのコア画像',card(monster,true)+capturedHtml);
+  shell('奪取したコア画像',capturedHtml);
+};
+
+main=function(){
+  if(!state.user)return register();
+  const monster=sel();
+  shell(monster?.name||'モンスター未登録',`<p class="center">トレーナー：${esc(state.user)}</p><div id="mainMonsterToggle">${card(monster)}</div><div class="actions"><button class="btn pink" id="issue">モンスターを発行</button><button class="btn gold" id="warehouse">モンスター倉庫</button><button class="btn purple" id="battle">対戦する</button><button class="btn gold" id="history">対戦履歴</button><button class="btn green" id="grow">育てる</button><button class="btn" id="core">奪取したコア画像を見る</button></div><button class="btn" id="admin">管理ページに戻る</button>`,false);
+  if(monster?.core){const image=document.querySelector('#mainMonsterToggle .monster-img');let showingCore=false;image.onclick=()=>{showingCore=!showingCore;image.src=showingCore?monster.core:img(monster);image.alt=showingCore?monster.name+'のコア画像':monster.name;image.classList.toggle('showing-core',showingCore)}}
+  document.querySelector('#issue').onclick=()=>camera(false);document.querySelector('#warehouse').onclick=warehouse;document.querySelector('#battle').onclick=battle;document.querySelector('#history').onclick=history;document.querySelector('#grow').onclick=()=>camera(true);document.querySelector('#core').onclick=core;document.querySelector('#admin').onclick=()=>location.href=location.pathname;
 };
 
 const morningResetKey=key+'-five-digit-death-reset-20260916';
