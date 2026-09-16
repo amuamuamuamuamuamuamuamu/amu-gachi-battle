@@ -136,5 +136,5 @@ main=function(){if(!state.user)return register();const m=sel();root.innerHTML='<
 const params=new URLSearchParams(location.search);
 if(params.has('admin')) admin();
 else if(params.has('room')) state.user?main():register();
-else location.replace(location.pathname+'?room=1');
+else admin();
 })();
