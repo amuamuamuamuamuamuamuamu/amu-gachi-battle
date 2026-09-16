@@ -160,11 +160,11 @@ history=function(){
 
 core=function(){
   const monster=sel();
-  if(!monster)return shell('モンスターのコア画像','<p class="center">表示するモンスターがありません。</p>');
+  if(!monster)return shell('奪取したコア画像','<p class="center">表示するモンスターがありません。</p>');
   const captures=Array.isArray(monster.capturedCores)?monster.capturedCores:[];
   const date=value=>{const parsed=new Date(value);return Number.isNaN(parsed.getTime())?'不明':parsed.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'})};
-  const capturedHtml=captures.length?'<section class="captured-core-list"><h2>奪取したコア画像（'+captures.length+'/10）</h2>'+captures.map((item,index)=>'<article class="captured-core"><img class="core-img" src="'+item.image+'" alt="奪取したコア画像"><p>相手トレーナー：'+esc(item.trainer||'不明')+'<br>対戦日：'+esc(date(item.capturedAt))+'</p><button class="btn gold" data-discard-capture="'+index+'">捨てる</button></article>').join('')+'</section>':'<p class="center">保存したコア画像はまだありません。</p>';
-  shell('モンスターのコア画像',capturedHtml);
+  const capturedHtml=captures.length?'<section class="captured-core-list">'+captures.map((item,index)=>'<article class="captured-core"><img class="core-img" src="'+item.image+'" alt="奪取したコア画像"><p>相手トレーナー：'+esc(item.trainer||'不明')+'<br>対戦日：'+esc(date(item.capturedAt))+'</p><button class="btn gold" data-discard-capture="'+index+'">捨てる</button></article>').join('')+'</section>':'<p class="center">保存したコア画像はまだありません。</p>';
+  shell('奪取したコア画像',capturedHtml);
   document.querySelectorAll('[data-discard-capture]').forEach(button=>button.onclick=async()=>{const index=Number(button.dataset.discardCapture);monster.capturedCores.splice(index,1);save();await api(monster);core()});
 };
 
