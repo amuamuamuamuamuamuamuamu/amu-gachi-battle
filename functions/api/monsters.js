@@ -7,16 +7,17 @@ export async function onRequest(context) {
   try { await env.DB.prepare('CREATE UNIQUE INDEX IF NOT EXISTS monsters_battle_code_unique ON monsters(battle_code) WHERE battle_code IS NOT NULL AND battle_code != ""').run(); } catch {}
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS battles (id TEXT PRIMARY KEY, room TEXT NOT NULL, trainer TEXT NOT NULL, opponent TEXT NOT NULL, result TEXT NOT NULL, logs TEXT NOT NULL, created_at TEXT NOT NULL)`).run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS battle_requests (id TEXT PRIMARY KEY, challenger_id TEXT NOT NULL, target_id TEXT NOT NULL, status TEXT NOT NULL, created_at TEXT NOT NULL)`).run();
+  try { await env.DB.prepare('ALTER TABLE battle_requests ADD COLUMN battle_data TEXT').run(); } catch {}
   if (request.method === 'GET') {
     const params = new URL(request.url).searchParams;
     const id = params.get('id'), code = params.get('code'), waitingFor = params.get('waitingFor');
     if (waitingFor) {
-      const requestRow = await env.DB.prepare("SELECT id, challenger_id FROM battle_requests WHERE target_id = ? AND status = 'pending' ORDER BY created_at DESC LIMIT 1").bind(waitingFor).first();
+      const requestRow = await env.DB.prepare("SELECT id, battle_data FROM battle_requests WHERE target_id = ? AND status = 'pending' ORDER BY created_at DESC LIMIT 1").bind(waitingFor).first();
       if (!requestRow) return new Response(null, {status:204});
-      const challenger = await env.DB.prepare('SELECT id, room, trainer, name, image_data, stats, history, created_at, battle_code FROM monsters WHERE id = ?').bind(requestRow.challenger_id).first();
-      if (!challenger) return new Response(null, {status:204});
+      const battle = JSON.parse(requestRow.battle_data || '{}');
+      if (!battle.challenger || !battle.target) return new Response(null, {status:204});
       await env.DB.prepare("UPDATE battle_requests SET status = 'claimed' WHERE id = ?").bind(requestRow.id).run();
-      return Response.json({battleId:requestRow.id, monster:challenger});
+      return Response.json({battleId:requestRow.id, role:'target', monster:battle.challenger, battle});
     }
     if (code) {
       const monster = await env.DB.prepare('SELECT id, room, trainer, name, image_data, stats, history, created_at, battle_code FROM monsters WHERE battle_code = ? LIMIT 1').bind(code).first();
@@ -34,14 +35,33 @@ export async function onRequest(context) {
   if (request.method === 'POST') {
     const body = await request.json();
     if (body.type === 'challenge') {
-      const challenger = await env.DB.prepare('SELECT id FROM monsters WHERE id = ?').bind(String(body.challengerId || '')).first();
+      const challenger = await env.DB.prepare('SELECT id, room, trainer, name, image_data, stats, history, created_at, battle_code FROM monsters WHERE id = ?').bind(String(body.challengerId || '')).first();
       const target = await env.DB.prepare('SELECT id, room, trainer, name, image_data, stats, history, created_at, battle_code FROM monsters WHERE battle_code = ? LIMIT 1').bind(String(body.targetCode || '')).first();
       if (!challenger || !target) return Response.json({error:'Monster not found'}, {status:404});
       if (challenger.id === target.id) return Response.json({error:'Cannot battle the same monster'}, {status:400});
       const battleId = crypto.randomUUID();
+      const parseStats = value => typeof value === 'string' ? JSON.parse(value) : value;
+      const challengerStats = parseStats(challenger.stats), targetStats = parseStats(target.stats);
+      let challengerHp = Number(challengerStats[1]?.value || 1), targetHp = Number(targetStats[1]?.value || 1);
+      const first = Math.random() < .5 ? 'challenger' : 'target';
+      const order = first === 'challenger' ? ['challenger','target','challenger','target'] : ['target','challenger','target','challenger'];
+      const turns = [];
+      const hit = value => Math.random() < ([0,.5,.6,.7,.8,.9][Number(value)] || .5);
+      const critical = value => Number(value) === 1 ? 1 : (Math.random() < .3 ? ({2:1.5,3:2,4:2.5,5:3}[Number(value)] || 1) : 1);
+      for (const attacker of order) {
+        if (challengerHp <= 0 || targetHp <= 0) break;
+        const attackerStats = attacker === 'challenger' ? challengerStats : targetStats;
+        const landed = hit(attackerStats[2]?.value), multiple = landed ? critical(attackerStats[3]?.value) : 1;
+        const damage = landed ? Math.max(1, Math.round(Number(attackerStats[0]?.value || 1) * multiple)) : 0;
+        if (attacker === 'challenger') targetHp = Math.max(0, targetHp - damage); else challengerHp = Math.max(0, challengerHp - damage);
+        turns.push({attacker,landed,multiple,damage,challengerHp,targetHp});
+      }
+      const winnerId = challengerHp > targetHp ? challenger.id : targetHp > challengerHp ? target.id : null;
+      const battle = {first,turns,winnerId,challengerHp,targetHp,challenger,target};
       await env.DB.prepare("UPDATE battle_requests SET status = 'expired' WHERE target_id = ? AND status = 'pending'").bind(target.id).run();
-      await env.DB.prepare('INSERT INTO battle_requests (id, challenger_id, target_id, status, created_at) VALUES (?, ?, ?, ?, ?)').bind(battleId, challenger.id, target.id, 'pending', new Date().toISOString()).run();
-      return Response.json({battleId, monster:target});
+      await env.DB.prepare('INSERT INTO battle_requests (id, challenger_id, target_id, status, created_at, battle_data) VALUES (?, ?, ?, ?, ?, ?)').bind(battleId, challenger.id, target.id, 'pending', new Date().toISOString(), JSON.stringify(battle)).run();
+      if (winnerId) await env.DB.prepare('DELETE FROM monsters WHERE id = ?').bind(winnerId === challenger.id ? target.id : challenger.id).run();
+      return Response.json({battleId, role:'challenger', monster:target, battle});
     }
     if (body.type === 'battle') {
       const id = crypto.randomUUID();
