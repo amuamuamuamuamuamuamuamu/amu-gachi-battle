@@ -172,7 +172,8 @@ main=function(){
   if(!state.user)return register();
   syncAccount(state.user);
   const monster=sel();
-  shell(monster?.name||'モンスター未登録',`<p class="center">トレーナー：${esc(state.user)}</p><div id="mainMonsterToggle">${card(monster)}</div><div class="actions"><button class="btn pink" id="issue">モンスターを発行</button><button class="btn gold" id="warehouse">モンスター倉庫</button><button class="btn purple" id="battle">対戦する</button><button class="btn gold" id="history">対戦履歴</button><button class="btn green" id="grow">育てる</button><button class="btn" id="core">奪取したコア画像を見る</button></div><button class="btn" id="admin">管理ページに戻る</button>`,false);
+  shell('',`<p class="center">トレーナー：${esc(state.user)}</p><div id="mainMonsterToggle">${card(monster)}</div><div class="actions"><button class="btn pink" id="issue">モンスターを発行</button><button class="btn gold" id="warehouse">モンスター倉庫</button><button class="btn purple" id="battle">対戦する</button><button class="btn gold" id="history">対戦履歴</button><button class="btn green" id="grow">育てる</button><button class="btn" id="core">奪取したコア画像を見る</button></div><button class="btn" id="admin">管理ページに戻る</button>`,false);
+  root.querySelector('h1')?.remove();
   if(monster?.core){const image=document.querySelector('#mainMonsterToggle .monster-img');let showingCore=false;image.onclick=()=>{showingCore=!showingCore;image.src=showingCore?monster.core:img(monster);image.alt=showingCore?monster.name+'のコア画像':monster.name;image.classList.toggle('showing-core',showingCore)}}
   document.querySelector('#issue').onclick=()=>camera(false);document.querySelector('#warehouse').onclick=warehouse;document.querySelector('#battle').onclick=battle;document.querySelector('#history').onclick=history;document.querySelector('#grow').onclick=()=>camera(true);document.querySelector('#core').onclick=core;document.querySelector('#admin').onclick=()=>location.href=location.pathname;
 };
