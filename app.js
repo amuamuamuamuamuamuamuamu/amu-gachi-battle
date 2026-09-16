@@ -1,6 +1,10 @@
 (() => {
 const root=document.querySelector('#app'),room=new URLSearchParams(location.search).get('room')||'1',key='amu-gachi-'+room,names=GAME_DATA.names||['モンスター'],statNames=['攻撃力','体力','命中率','回心率'];let state=JSON.parse(localStorage.getItem(key)||'null')||{user:'',monsters:[],selected:null,history:[]},stream=null,timer=null;
 const save=()=>localStorage.setItem(key,JSON.stringify(state)),sel=()=>state.monsters.find(m=>m.id===state.selected)||state.monsters.at(-1),img=m=>`進化モンスター/モンスター${m.imageNumber||1}/1.png`,stop=()=>{stream?.getTracks().forEach(t=>t.stop());stream=null;clearInterval(timer);timer=null},esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),stats=m=>{let a=statNames.map((n,i)=>({name:n,value:Math.max(1,Math.min(5,Number((m.stats||[])[i]?.value||1)))})),t=a.reduce((x,y)=>x+y.value,0);while(t>12){let x=a.find(y=>y.value>1);x.value--;t--}while(t<6){let x=a.find(y=>y.value<5);x.value++;t++}return a},statsHtml=m=>`<div class="stats">${stats(m).map(s=>`<div class="stat"><b>${s.name}</b> ${s.value}<div class="bar"><div class="fill" style="width:${s.value*20}%"></div></div></div>`).join('')}</div>`,card=(m,core=false)=>m?`<article class="monster-card"><img class="monster-img" src="${core?(m.core||''):img(m)}" alt="${esc(m.name)}"><h2 class="name">${esc(m.name)}</h2>${core?'':statsHtml(m)}</article>`:'<p class="center">モンスターがいません。</p>';
+let sharedReady=false,sharedSaveTimer=null;
+const storageSet=localStorage.setItem.bind(localStorage);
+const saveSharedState=()=>{if(!sharedReady||!state.user)return;fetch('/api/monsters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'account-state',room,state})}).catch(()=>{})};
+localStorage.setItem=(storageKey,value)=>{storageSet(storageKey,value);if(storageKey!==key||!sharedReady)return;clearTimeout(sharedSaveTimer);sharedSaveTimer=setTimeout(saveSharedState,250)};
 if(Array.isArray(state.monsters)&&state.monsters.some(monster=>Array.isArray(monster.capturedCores)&&monster.capturedCores.length>10)){state.monsters.forEach(monster=>{if(Array.isArray(monster.capturedCores))monster.capturedCores=monster.capturedCores.slice(0,10)});save()}
 function shell(t,b,close=true){stop();root.innerHTML=`${close?'<button class="close" id="close">×</button>':''}<h1>${t}</h1>${b}`;if(close)document.querySelector('#close').onclick=main}
 function initial(){let a=[1,1,1,1];for(let i=0;i<2;i++){let c=a.map((v,j)=>v<5?j:-1).filter(j=>j>=0);a[c[Math.random()*c.length|0]]++}return statNames.map((name,i)=>({name,value:a[i]}))}
@@ -184,6 +188,14 @@ main=function(){
 
 function syncAccount(trainer){fetch('/api/monsters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'account',room,trainer})}).catch(()=>{})}
 
+async function loadSharedState(){
+  try{
+    const response=await fetch('/api/monsters?state=1&room='+encodeURIComponent(room));
+    if(response.ok){const shared=await response.json();if(shared&&typeof shared==='object'&&Array.isArray(shared.monsters)&&Array.isArray(shared.history)){state={user:String(shared.user||''),monsters:shared.monsters,selected:shared.selected||null,history:shared.history};storageSet(key,JSON.stringify(state))}}
+  }catch{}
+  sharedReady=true;
+}
+
 admin=async function(){
   root.innerHTML='<img class="logo" src="あむガチバトルロゴ.jpg"><h1>アカウント一覧</h1><div id="accountList">読み込み中…</div><button class="btn purple" id="admin2">管理ページ2へ行く</button>';
   try{
@@ -202,5 +214,5 @@ if(localStorage.getItem(morningResetKey)!=='done'){
   save();
   localStorage.setItem(morningResetKey,'done');
 }
-new URLSearchParams(location.search).has('room')?(state.user?main():register()):admin();
+if(new URLSearchParams(location.search).has('room'))loadSharedState().finally(()=>state.user?main():register());else admin();
 })();

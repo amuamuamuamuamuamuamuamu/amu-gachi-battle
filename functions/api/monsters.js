@@ -8,11 +8,18 @@ export async function onRequest(context) {
   try { await env.DB.prepare('CREATE UNIQUE INDEX IF NOT EXISTS monsters_battle_code_unique ON monsters(battle_code) WHERE battle_code IS NOT NULL AND battle_code != ""').run(); } catch {}
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS battles (id TEXT PRIMARY KEY, room TEXT NOT NULL, trainer TEXT NOT NULL, opponent TEXT NOT NULL, result TEXT NOT NULL, logs TEXT NOT NULL, created_at TEXT NOT NULL)`).run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS accounts (room TEXT PRIMARY KEY, trainer TEXT NOT NULL, updated_at TEXT NOT NULL)`).run();
+  try { await env.DB.prepare("ALTER TABLE accounts ADD COLUMN state_data TEXT NOT NULL DEFAULT ''").run(); } catch {}
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS battle_requests (id TEXT PRIMARY KEY, challenger_id TEXT NOT NULL, target_id TEXT NOT NULL, status TEXT NOT NULL, created_at TEXT NOT NULL)`).run();
   try { await env.DB.prepare('ALTER TABLE battle_requests ADD COLUMN battle_data TEXT').run(); } catch {}
   if (request.method === 'GET') {
     const params = new URL(request.url).searchParams;
-    const id = params.get('id'), code = params.get('code'), waitingFor = params.get('waitingFor'), accounts = params.get('accounts');
+    const id = params.get('id'), code = params.get('code'), waitingFor = params.get('waitingFor'), accounts = params.get('accounts'), accountState = params.get('state'), requestedRoom = String(params.get('room') || '');
+    if (accountState) {
+      if (!/^(?:[1-9]|10)$/.test(requestedRoom)) return Response.json({error:'Valid room is required'}, {status:400});
+      const account = await env.DB.prepare('SELECT state_data FROM accounts WHERE room = ? LIMIT 1').bind(requestedRoom).first();
+      if (!account?.state_data) return Response.json(null);
+      try { return Response.json(JSON.parse(account.state_data)); } catch { return Response.json(null); }
+    }
     if (accounts) {
       await env.DB.prepare('INSERT OR IGNORE INTO accounts (room, trainer, updated_at) SELECT room, MAX(trainer), MAX(created_at) FROM monsters WHERE trainer != "" GROUP BY room').run();
       const result = await env.DB.prepare('SELECT room, trainer, updated_at FROM accounts ORDER BY CAST(room AS INTEGER)').all();
@@ -41,11 +48,19 @@ export async function onRequest(context) {
   }
   if (request.method === 'POST') {
     const body = await request.json();
+    if (body.type === 'account-state') {
+      const accountRoom = String(body.room || '');
+      const sharedState = body.state;
+      const accountTrainer = String(sharedState?.user || '').trim();
+      if (!/^(?:[1-9]|10)$/.test(accountRoom) || !accountTrainer || !sharedState || !Array.isArray(sharedState.monsters) || !Array.isArray(sharedState.history)) return Response.json({error:'Valid shared account state is required'}, {status:400});
+      await env.DB.prepare('INSERT INTO accounts (room, trainer, updated_at, state_data) VALUES (?, ?, ?, ?) ON CONFLICT(room) DO UPDATE SET trainer = excluded.trainer, updated_at = excluded.updated_at, state_data = excluded.state_data').bind(accountRoom, accountTrainer, new Date().toISOString(), JSON.stringify(sharedState)).run();
+      return Response.json({ok:true});
+    }
     if (body.type === 'account') {
       const accountRoom = String(body.room || '');
       const accountTrainer = String(body.trainer || '').trim();
       if (!/^(?:[1-9]|10)$/.test(accountRoom) || !accountTrainer) return Response.json({error:'Valid room and trainer are required'}, {status:400});
-      await env.DB.prepare('INSERT OR REPLACE INTO accounts (room, trainer, updated_at) VALUES (?, ?, ?)').bind(accountRoom, accountTrainer, new Date().toISOString()).run();
+      await env.DB.prepare('INSERT INTO accounts (room, trainer, updated_at) VALUES (?, ?, ?) ON CONFLICT(room) DO UPDATE SET trainer = excluded.trainer, updated_at = excluded.updated_at').bind(accountRoom, accountTrainer, new Date().toISOString()).run();
       return Response.json({ok:true});
     }
     if (body.type === 'challenge') {
@@ -92,7 +107,7 @@ export async function onRequest(context) {
     }
     if (!battleCode) return Response.json({error:'Could not allocate battle code'}, {status:503});
     const imageNumber = Math.max(1, Math.min(65, Number(body.imageNumber) || 1));
-    if (String(body.trainer || '').trim()) await env.DB.prepare('INSERT OR REPLACE INTO accounts (room, trainer, updated_at) VALUES (?, ?, ?)').bind(String(body.room || ''), String(body.trainer).trim(), new Date().toISOString()).run();
+    if (String(body.trainer || '').trim()) await env.DB.prepare('INSERT INTO accounts (room, trainer, updated_at) VALUES (?, ?, ?) ON CONFLICT(room) DO UPDATE SET trainer = excluded.trainer, updated_at = excluded.updated_at').bind(String(body.room || ''), String(body.trainer).trim(), new Date().toISOString()).run();
     await env.DB.prepare('INSERT OR REPLACE INTO monsters (id, room, trainer, name, image_data, image_number, stats, history, created_at, battle_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(id, String(body.room || ''), String(body.trainer || ''), String(body.name || ''), String(body.imageData || ''), imageNumber, JSON.stringify(body.stats || []), JSON.stringify(body.history || []), body.createdAt || new Date().toISOString(), battleCode).run();
     return Response.json({ ok: true, id, battleCode });
   }
