@@ -65,8 +65,8 @@ function showBattle(me,raw){
       const choices=total<12?myStats.filter(s=>s.value<5):[];
       if(choices.length){const raised=choices[Math.random()*choices.length|0];raised.value++;growth=raised.name+'の値が1増えました';me.stats=myStats;const stored=state.monsters.find(m=>m.id===me.id);if(stored)stored.stats=myStats;api(me)}
     }
-    const historyRecord={opponent:enemy.name,result,date:new Date().toISOString(),logs};
-    if(result==='勝利'&&enemy.core){historyRecord.core=enemy.core;historyRecord.trainer=enemy.trainer||'不明';historyRecord.capturedAt=historyRecord.date}
+    const historyRecord={opponent:enemy.name,trainer:enemy.trainer||'不明',result,date:new Date().toISOString(),logs};
+    if(result==='勝利'&&enemy.core){historyRecord.core=enemy.core;historyRecord.capturedAt=historyRecord.date}
     state.history.unshift(historyRecord);
     save();
     const core=result==='勝利'&&enemy.core?'<p class="battle-result-note">奪取したモンスターのコア画像</p><img class="battle-result-core" src="'+enemy.core+'" alt="奪取したモンスターのコア画像">':'';
@@ -131,8 +131,8 @@ function showSharedBattle(me,enemy,battleData,role){
   const finish=()=>{
     const won=battleData.winnerId===me.id,draw=!battleData.winnerId,result=draw?'引き分け':won?'勝利':'敗北';
     if(!won&&!draw){state.monsters=state.monsters.filter(monster=>monster.id!==me.id);if(state.selected===me.id)state.selected=state.monsters.at(-1)?.id||null}
-    const record={opponent:enemy.name,result,date:new Date().toISOString(),logs:[...logs]};
-    if(won&&enemy.core){record.core=enemy.core;record.trainer=enemy.trainer||'不明';record.capturedAt=record.date}
+    const record={opponent:enemy.name,trainer:enemy.trainer||'不明',result,date:new Date().toISOString(),logs:[...logs]};
+    if(won&&enemy.core){record.core=enemy.core;record.capturedAt=record.date}
     state.history.unshift(record);save();
     const captured=won&&enemy.core?'<p class="battle-result-note">奪取したモンスターのコア画像</p><img class="battle-result-core" src="'+enemy.core+'" alt="奪取したモンスターのコア画像">':'';
     const defeated=!won&&!draw?'<p class="battle-result-note">負けたモンスターは死亡しました。</p>':'';
@@ -153,7 +153,8 @@ function showSharedBattle(me,enemy,battleData,role){
 
 history=function(){
   const monster=sel(),captures=Array.isArray(monster?.capturedCores)?monster.capturedCores:[],full=captures.length>=10;
-  const body=state.history.length?state.history.map((item,index)=>'<article class="history"><b>'+esc(item.result)+'</b>　'+esc(item.opponent)+'<br>'+esc(item.date)+(item.core?'<p>奪取したコア画像</p><img class="core-img" src="'+item.core+'" alt="奪取したコア画像"><button class="btn '+(full?'save-disabled':'pink')+'" data-save-history-core="'+index+'" '+(full?'disabled':'')+'>保存する</button>':'')+'</article>').join(''):'<p class="center">まだ対戦履歴はありません。</p>';
+  const formatDate=value=>{const date=new Date(value);if(Number.isNaN(date.getTime()))return '不明';const pad=n=>String(n).padStart(2,'0');return date.getFullYear()+'年'+(date.getMonth()+1)+'月'+date.getDate()+'日 '+pad(date.getHours())+'時'+pad(date.getMinutes())+'分'};
+  const body=state.history.length?state.history.map((item,index)=>{const resultClass=item.result==='勝利'?'history-win':item.result==='敗北'?'history-lose':'history-draw';return '<article class="history"><b class="history-result '+resultClass+'">'+esc(item.result)+'</b>　'+esc(item.opponent)+'<br>トレーナー：'+esc(item.trainer||'不明')+'<br>'+esc(formatDate(item.date))+(item.core?'<p>奪取したコア画像</p><img class="core-img" src="'+item.core+'" alt="奪取したコア画像"><button class="btn '+(full?'save-disabled':'pink')+'" data-save-history-core="'+index+'" '+(full?'disabled':'')+'>保存する</button>':'')+'</article>'}).join(''):'<p class="center">まだ対戦履歴はありません。</p>';
   shell('対戦履歴',body);
   document.querySelectorAll('[data-save-history-core]').forEach(button=>button.onclick=async()=>{const index=Number(button.dataset.saveHistoryCore),entry=state.history[index],target=sel();if(!entry?.core||!target)return;if(!Array.isArray(target.capturedCores))target.capturedCores=[];if(target.capturedCores.length>=10)return;target.capturedCores.unshift({image:entry.core,trainer:entry.trainer||'不明',capturedAt:entry.capturedAt||entry.date});save();await api(target);history()});
 };
