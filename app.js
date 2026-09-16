@@ -130,6 +130,9 @@ battle=function(){
     }catch{status.textContent='その5桁の数字のモンスターが見つかりません。'}
   };
 };
+// バトル以外の画面を単純な画面遷移に統一する。
+register=function(){root.innerHTML='<h1>トレーナー登録</h1><input id="user" maxlength="12" placeholder="トレーナー名"><button class="btn pink" id="register" disabled>登録してゲームを始める</button>';const i=document.querySelector('#user'),b=document.querySelector('#register');i.oninput=()=>b.disabled=!i.value.trim();b.onclick=()=>{state.user=i.value.trim();save();main()}};
+main=function(){if(!state.user)return register();const m=sel();root.innerHTML='<h1>'+(m?esc(m.name):'モンスター未登録')+'</h1><p class="center">トレーナー：'+esc(state.user)+'</p>'+(m?card(m):'<p class="center">モンスターを発行してください。</p>')+'<div class="actions"><button class="btn pink" id="issue">モンスターを発行</button><button class="btn gold" id="warehouse">モンスター倉庫</button><button class="btn purple" id="battle">対戦する</button><button class="btn gold" id="history">対戦履歴</button><button class="btn" id="core">モンスターのコア画像を見る</button></div><button class="btn" id="admin">管理ページに戻る</button>';issue.onclick=()=>camera(false);warehouse.onclick=warehouse;battle.onclick=battle;history.onclick=history;core.onclick=core;admin.onclick=()=>location.href=location.pathname+'?admin=1'};
 const params=new URLSearchParams(location.search);
 if(params.has('admin')) admin();
 else if(params.has('room')) state.user?main():register();
