@@ -7,11 +7,17 @@ export async function onRequest(context) {
   try { await env.DB.prepare('ALTER TABLE monsters ADD COLUMN image_number INTEGER NOT NULL DEFAULT 1').run(); } catch {}
   try { await env.DB.prepare('CREATE UNIQUE INDEX IF NOT EXISTS monsters_battle_code_unique ON monsters(battle_code) WHERE battle_code IS NOT NULL AND battle_code != ""').run(); } catch {}
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS battles (id TEXT PRIMARY KEY, room TEXT NOT NULL, trainer TEXT NOT NULL, opponent TEXT NOT NULL, result TEXT NOT NULL, logs TEXT NOT NULL, created_at TEXT NOT NULL)`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS accounts (room TEXT PRIMARY KEY, trainer TEXT NOT NULL, updated_at TEXT NOT NULL)`).run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS battle_requests (id TEXT PRIMARY KEY, challenger_id TEXT NOT NULL, target_id TEXT NOT NULL, status TEXT NOT NULL, created_at TEXT NOT NULL)`).run();
   try { await env.DB.prepare('ALTER TABLE battle_requests ADD COLUMN battle_data TEXT').run(); } catch {}
   if (request.method === 'GET') {
     const params = new URL(request.url).searchParams;
-    const id = params.get('id'), code = params.get('code'), waitingFor = params.get('waitingFor');
+    const id = params.get('id'), code = params.get('code'), waitingFor = params.get('waitingFor'), accounts = params.get('accounts');
+    if (accounts) {
+      await env.DB.prepare('INSERT OR IGNORE INTO accounts (room, trainer, updated_at) SELECT room, MAX(trainer), MAX(created_at) FROM monsters WHERE trainer != "" GROUP BY room').run();
+      const result = await env.DB.prepare('SELECT room, trainer, updated_at FROM accounts ORDER BY CAST(room AS INTEGER)').all();
+      return Response.json(result.results || []);
+    }
     if (waitingFor) {
       const requestRow = await env.DB.prepare("SELECT id, battle_data FROM battle_requests WHERE target_id = ? AND status = 'pending' ORDER BY created_at DESC LIMIT 1").bind(waitingFor).first();
       if (!requestRow) return new Response(null, {status:204});
@@ -35,6 +41,13 @@ export async function onRequest(context) {
   }
   if (request.method === 'POST') {
     const body = await request.json();
+    if (body.type === 'account') {
+      const accountRoom = String(body.room || '');
+      const accountTrainer = String(body.trainer || '').trim();
+      if (!/^(?:[1-9]|10)$/.test(accountRoom) || !accountTrainer) return Response.json({error:'Valid room and trainer are required'}, {status:400});
+      await env.DB.prepare('INSERT OR REPLACE INTO accounts (room, trainer, updated_at) VALUES (?, ?, ?)').bind(accountRoom, accountTrainer, new Date().toISOString()).run();
+      return Response.json({ok:true});
+    }
     if (body.type === 'challenge') {
       const challenger = await env.DB.prepare('SELECT id, room, trainer, name, image_data, image_number, stats, history, created_at, battle_code FROM monsters WHERE id = ?').bind(String(body.challengerId || '')).first();
       const target = await env.DB.prepare('SELECT id, room, trainer, name, image_data, image_number, stats, history, created_at, battle_code FROM monsters WHERE battle_code = ? LIMIT 1').bind(String(body.targetCode || '')).first();
@@ -79,6 +92,7 @@ export async function onRequest(context) {
     }
     if (!battleCode) return Response.json({error:'Could not allocate battle code'}, {status:503});
     const imageNumber = Math.max(1, Math.min(65, Number(body.imageNumber) || 1));
+    if (String(body.trainer || '').trim()) await env.DB.prepare('INSERT OR REPLACE INTO accounts (room, trainer, updated_at) VALUES (?, ?, ?)').bind(String(body.room || ''), String(body.trainer).trim(), new Date().toISOString()).run();
     await env.DB.prepare('INSERT OR REPLACE INTO monsters (id, room, trainer, name, image_data, image_number, stats, history, created_at, battle_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(id, String(body.room || ''), String(body.trainer || ''), String(body.name || ''), String(body.imageData || ''), imageNumber, JSON.stringify(body.stats || []), JSON.stringify(body.history || []), body.createdAt || new Date().toISOString(), battleCode).run();
     return Response.json({ ok: true, id, battleCode });
   }

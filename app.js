@@ -170,10 +170,25 @@ core=function(){
 
 main=function(){
   if(!state.user)return register();
+  syncAccount(state.user);
   const monster=sel();
   shell(monster?.name||'モンスター未登録',`<p class="center">トレーナー：${esc(state.user)}</p><div id="mainMonsterToggle">${card(monster)}</div><div class="actions"><button class="btn pink" id="issue">モンスターを発行</button><button class="btn gold" id="warehouse">モンスター倉庫</button><button class="btn purple" id="battle">対戦する</button><button class="btn gold" id="history">対戦履歴</button><button class="btn green" id="grow">育てる</button><button class="btn" id="core">奪取したコア画像を見る</button></div><button class="btn" id="admin">管理ページに戻る</button>`,false);
   if(monster?.core){const image=document.querySelector('#mainMonsterToggle .monster-img');let showingCore=false;image.onclick=()=>{showingCore=!showingCore;image.src=showingCore?monster.core:img(monster);image.alt=showingCore?monster.name+'のコア画像':monster.name;image.classList.toggle('showing-core',showingCore)}}
   document.querySelector('#issue').onclick=()=>camera(false);document.querySelector('#warehouse').onclick=warehouse;document.querySelector('#battle').onclick=battle;document.querySelector('#history').onclick=history;document.querySelector('#grow').onclick=()=>camera(true);document.querySelector('#core').onclick=core;document.querySelector('#admin').onclick=()=>location.href=location.pathname;
+};
+
+function syncAccount(trainer){fetch('/api/monsters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'account',room,trainer})}).catch(()=>{})}
+
+admin=async function(){
+  root.innerHTML='<img class="logo" src="あむガチバトルロゴ.jpg"><h1>アカウント一覧</h1><div id="accountList">読み込み中…</div><button class="btn purple" id="admin2">管理ページ2へ行く</button>';
+  try{
+    const response=await fetch('/api/monsters?accounts=1');
+    if(!response.ok)throw new Error('accounts unavailable');
+    const accounts=await response.json(),byRoom=new Map(accounts.map(account=>[String(account.room),account.trainer]));
+    document.querySelector('#accountList').innerHTML=Array.from({length:10},(_,index)=>{const number=index+1,trainer=byRoom.get(String(number));return '<div class="room"><span><b>アカウント '+number+'</b><br><small>'+ (trainer?'トレーナー：'+esc(trainer):'空いている')+'</small></span><button class="btn gold" data-account="'+number+'">入る</button></div>'}).join('');
+    document.querySelectorAll('[data-account]').forEach(button=>button.onclick=()=>location.href=location.pathname+'?room='+button.dataset.account);
+  }catch{document.querySelector('#accountList').innerHTML=Array.from({length:10},(_,index)=>'<div class="room"><span><b>アカウント '+(index+1)+'</b><br><small>空いている</small></span><button class="btn gold" data-account="'+(index+1)+'">入る</button></div>').join('');document.querySelectorAll('[data-account]').forEach(button=>button.onclick=()=>location.href=location.pathname+'?room='+button.dataset.account)}
+  document.querySelector('#admin2').onclick=admin2;
 };
 
 const morningResetKey=key+'-five-digit-death-reset-20260916';
