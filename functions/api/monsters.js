@@ -2,6 +2,7 @@ export async function onRequest(context) {
   const { request, env } = context;
   if (!env.DB) return Response.json({error:'D1 binding DB is not configured'}, {status:503});
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS monsters (id TEXT PRIMARY KEY, room TEXT NOT NULL, trainer TEXT NOT NULL, name TEXT NOT NULL, image_data TEXT NOT NULL, stats TEXT NOT NULL, history TEXT NOT NULL DEFAULT '[]', created_at TEXT NOT NULL)`).run();
+  try { await env.DB.prepare("ALTER TABLE monsters ADD COLUMN history TEXT NOT NULL DEFAULT '[]'").run(); } catch {}
   try { await env.DB.prepare('ALTER TABLE monsters ADD COLUMN battle_code TEXT').run(); } catch {}
   try { await env.DB.prepare('CREATE UNIQUE INDEX IF NOT EXISTS monsters_battle_code_unique ON monsters(battle_code) WHERE battle_code IS NOT NULL AND battle_code != ""').run(); } catch {}
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS battles (id TEXT PRIMARY KEY, room TEXT NOT NULL, trainer TEXT NOT NULL, opponent TEXT NOT NULL, result TEXT NOT NULL, logs TEXT NOT NULL, created_at TEXT NOT NULL)`).run();
