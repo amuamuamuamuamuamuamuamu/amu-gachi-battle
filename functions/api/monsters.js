@@ -40,5 +40,12 @@ export async function onRequest(context) {
     await env.DB.prepare('INSERT OR REPLACE INTO monsters (id, room, trainer, name, image_data, stats, history, created_at, battle_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(id, String(body.room || ''), String(body.trainer || ''), String(body.name || ''), String(body.imageData || ''), JSON.stringify(body.stats || []), JSON.stringify(body.history || []), body.createdAt || new Date().toISOString(), battleCode).run();
     return Response.json({ ok: true, id, battleCode });
   }
+  if (request.method === 'DELETE') {
+    const params = new URL(request.url).searchParams;
+    const id = params.get('id');
+    if (!id) return Response.json({error:'Monster id is required'}, {status:400});
+    await env.DB.prepare('DELETE FROM monsters WHERE id = ?').bind(id).run();
+    return Response.json({ok:true});
+  }
   return new Response('Method Not Allowed', { status: 405 });
 }

@@ -50,6 +50,13 @@ function showBattle(me,raw){
   const finishBattle=()=>{
     if(finished)return;
     finished=true;
+    if(myHp<enemyHp){
+      state.monsters=state.monsters.filter(monster=>monster.id!==me.id);
+      if(state.selected===me.id)state.selected=state.monsters.at(-1)?.id||null;
+      fetch('/api/monsters?id='+encodeURIComponent(me.id),{method:'DELETE'}).catch(()=>{});
+    }else if(enemyHp<myHp&&raw.id){
+      fetch('/api/monsters?id='+encodeURIComponent(raw.id),{method:'DELETE'}).catch(()=>{});
+    }
     const result=enemyHp===0&&myHp>0?'勝利':myHp===0&&enemyHp>0?'敗北':myHp>enemyHp?'勝利':myHp<enemyHp?'敗北':'引き分け';
     let growth='';
     if(result==='勝利'){
@@ -106,8 +113,8 @@ const battleCode=()=>String(10000+Math.floor(Math.random()*90000));
 const saveMonsterApi=api;
 api=async m=>{if(!/^\d{5}$/.test(String(m.battleCode||'')))m.battleCode=battleCode();try{const response=await fetch('/api/monsters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:m.id,room,trainer:state.user,name:m.name,imageData:m.core||'',stats:m.stats,history:m.history||[],battleCode:m.battleCode})});if(response.ok){const data=await response.json();m.battleCode=data.battleCode||m.battleCode;save()}}catch{}};
 state.monsters.forEach(m=>{if(!/^\d{5}$/.test(String(m.battleCode||'')))m.battleCode=battleCode();api(m)});
-battle=function(){const me=sel();if(!me)return main();stop();const own=me.battleCode||battleCode(me);root.innerHTML='<button class="close" id="close">×</button><h1>コード読み取り画面</h1><p class="center">自分のモンスターの5桁コード</p><div class="battle-code-display">'+own+'</div><input id="opponentCode" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="相手の5桁コード"><button id="startCodeBattle" class="btn gold">このコードで対戦</button><p id="codeStatus" class="center"></p>';document.querySelector('#close').onclick=main;const input=document.querySelector('#opponentCode'),status=document.querySelector('#codeStatus');input.oninput=()=>input.value=input.value.replace(/\D/g,'').slice(0,5);document.querySelector('#startCodeBattle').onclick=async()=>{const code=input.value;if(!/^\d{5}$/.test(code)){status.textContent='5桁の数字を入力してください。';return}const local=state.monsters.find(m=>(m.battleCode||battleCode(m))===code);if(local){showBattle(me,{name:local.name,imageNumber:local.imageNumber||1,core:local.core||'',stats:local.stats});return}try{const response=await fetch('/api/monsters?code='+encodeURIComponent(code));if(!response.ok)throw 0;const data=await response.json();showBattle(me,{name:data.name,imageNumber:data.image_number||1,core:data.image_data||'',stats:typeof data.stats==='string'?JSON.parse(data.stats):data.stats})}catch{status.textContent='そのコードのモンスターが見つかりません。'}}};
-const morningResetKey=key+'-five-digit-reset-20260916';
+battle=function(){const me=sel();if(!me)return main();stop();const own=me.battleCode||battleCode(me);root.innerHTML='<button class="close" id="close">×</button><h1>コード読み取り画面</h1><p class="center">自分のモンスターの5桁コード</p><div class="battle-code-display">'+own+'</div><input id="opponentCode" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="相手の5桁コード"><button id="startCodeBattle" class="btn gold">このコードで対戦</button><p id="codeStatus" class="center"></p>';document.querySelector('#close').onclick=main;const input=document.querySelector('#opponentCode'),status=document.querySelector('#codeStatus');input.oninput=()=>input.value=input.value.replace(/\D/g,'').slice(0,5);document.querySelector('#startCodeBattle').onclick=async()=>{const code=input.value;if(!/^\d{5}$/.test(code)){status.textContent='5桁の数字を入力してください。';return}const local=state.monsters.find(m=>(m.battleCode||battleCode(m))===code);if(local){showBattle(me,{id:local.id,name:local.name,imageNumber:local.imageNumber||1,core:local.core||'',stats:local.stats});return}try{const response=await fetch('/api/monsters?code='+encodeURIComponent(code));if(!response.ok)throw 0;const data=await response.json();showBattle(me,{id:data.id,name:data.name,imageNumber:data.image_number||1,core:data.image_data||'',stats:typeof data.stats==='string'?JSON.parse(data.stats):data.stats})}catch{status.textContent='そのコードのモンスターが見つかりません。'}}};
+const morningResetKey=key+'-five-digit-death-reset-20260916';
 if(localStorage.getItem(morningResetKey)!=='done'){
   state={user:'',monsters:[],selected:null,history:[]};
   save();
