@@ -17,7 +17,7 @@ export async function onRequest(context) {
       if (!monster) return Response.json({error:'Monster not found'}, {status:404});
       return Response.json(monster);
     }
-    const code = new URL(request.url).searchParams.get('code'); const result = code ? await env.DB.prepare('SELECT id, room, trainer, name, image_data, stats, history, created_at, battle_code FROM monsters WHERE battle_code = ? LIMIT 1').bind(code).all() : await env.DB.prepare('SELECT id, room, trainer, name, image_data, stats, history, created_at, battle_code FROM monsters ORDER BY created_at DESC').all(); if(code && !(result.results||[]).length) return Response.json({error:'not_found'},{status:404});
+    const result = code ? await env.DB.prepare('SELECT id, room, trainer, name, image_data, stats, history, created_at, battle_code FROM monsters WHERE battle_code = ? LIMIT 1').bind(code).all() : await env.DB.prepare('SELECT id, room, trainer, name, image_data, stats, history, created_at, battle_code FROM monsters ORDER BY created_at DESC').all(); if(code && !(result.results||[]).length) return Response.json({error:'not_found'},{status:404});
     return Response.json(result.results || []);
   }
   if (request.method === 'POST') {
