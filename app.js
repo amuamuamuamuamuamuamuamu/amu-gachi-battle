@@ -107,5 +107,28 @@ register=function(){root.innerHTML='<h1>トレーナー登録</h1><p class="cent
 const originalPhotoBattle=photoBattle; battle=function(){const me=sel();if(!me)return main();originalPhotoBattle();const code=me.battleCode||battleCode(me),number=me.monsterNumber||state.monsters.indexOf(me)+1;document.querySelector('h1')?.insertAdjacentHTML('afterend','<p class="center monster-number-label">自分のモンスター番号</p><div class="monster-number-display">'+number+'</div><p class="center battle-code-label">自分の対戦数字</p><div class="battle-code-display">'+code+'</div>')};
 // 現行仕様：画像・カメラ・OCR・QRを使わず、5桁コードの手入力だけで対戦する。
 battle=function(){const me=sel();if(!me)return main();stop();const own=me.battleCode||battleCode(me);me.battleCode=own;root.innerHTML='<button class="close" id="close">×</button><h1>対戦コード入力</h1><p class="center">自分のモンスター番号</p><div class="monster-number-display">'+(me.monsterNumber||state.monsters.indexOf(me)+1)+'</div><p class="center">自分の5桁コード</p><div class="battle-code-display">'+own+'</div><p class="center">相手の5桁コードを入力してください。</p><input id="opponentCode" class="code-input" inputmode="numeric" maxlength="5" placeholder="5桁の数字"><button id="startCodeBattle" class="btn gold">このコードで対戦</button><p id="codeStatus" class="center"></p>';document.querySelector('#close').onclick=main;document.querySelector('#startCodeBattle').onclick=async()=>{const code=document.querySelector('#opponentCode').value.replace(/\D/g,'');if(code.length!==5){document.querySelector('#codeStatus').textContent='5桁のコードを入力してください。';return}const local=state.monsters.find(m=>(m.battleCode||battleCode(m))===code);if(local){showBattle(me,{name:local.name,imageNumber:local.imageNumber||1,core:local.core||'',stats:local.stats||initial()});return}try{const r=await fetch('/api/monsters?code='+code);if(!r.ok)throw 0;const x=await r.json();showBattle(me,{name:x.name,imageNumber:x.image_number||1,core:x.image_data||'',stats:typeof x.stats==='string'?JSON.parse(x.stats):x.stats})}catch{document.querySelector('#codeStatus').textContent='そのコードのモンスターが見つかりません。'}}};
+// 現行仕様：番号読み取り画面は、×・自分のモンスター番号・5桁コード入力・対戦開始だけを表示する。
+battle=function(){
+  const me=sel();
+  if(!me)return main();
+  stop();
+  const ownNumber=me.monsterNumber||state.monsters.indexOf(me)+1;
+  root.innerHTML='<button class="close" id="close">×</button><h1>番号読み取り画面</h1><div class="monster-number-display">'+ownNumber+'</div><input id="opponentCode" class="code-input" inputmode="numeric" autocomplete="off" maxlength="5" pattern="[0-9]{5}" placeholder="相手の5桁の数字" aria-label="相手の5桁の数字"><button id="startCodeBattle" class="btn gold">この数字で対戦</button><p id="codeStatus" class="center"></p>';
+  document.querySelector('#close').onclick=main;
+  const input=document.querySelector('#opponentCode'),status=document.querySelector('#codeStatus');
+  input.addEventListener('input',()=>{input.value=input.value.replace(/\D/g,'').slice(0,5);status.textContent=''});
+  document.querySelector('#startCodeBattle').onclick=async()=>{
+    const code=input.value;
+    if(!/^\d{5}$/.test(code)){status.textContent='5桁の数字を入力してください。';input.focus();return}
+    const local=state.monsters.find(m=>(m.battleCode||battleCode(m))===code);
+    if(local){showBattle(me,{name:local.name,imageNumber:local.imageNumber||1,core:local.core||'',stats:local.stats||initial()});return}
+    try{
+      const response=await fetch('/api/monsters?code='+encodeURIComponent(code));
+      if(!response.ok)throw new Error('not found');
+      const data=await response.json();
+      showBattle(me,{name:data.name||'相手のモンスター',imageNumber:data.image_number||1,core:data.image_data||'',stats:typeof data.stats==='string'?JSON.parse(data.stats):data.stats});
+    }catch{status.textContent='その5桁の数字のモンスターが見つかりません。'}
+  };
+};
 new URLSearchParams(location.search).has('room')?(state.user?main():register()):admin();
 })();
