@@ -2,6 +2,7 @@
 const root=document.querySelector('#app'),room=new URLSearchParams(location.search).get('room')||'1',key='amu-gachi-'+room,names=GAME_DATA.names||['モンスター'],statNames=['攻撃力','体力','命中率','回心率'];let state=JSON.parse(localStorage.getItem(key)||'null')||{user:'',monsters:[],selected:null,history:[]},stream=null,timer=null;
 const save=()=>localStorage.setItem(key,JSON.stringify(state)),sel=()=>state.monsters.find(m=>m.id===state.selected)||state.monsters.at(-1),img=m=>`進化モンスター/モンスター${m.imageNumber||1}/1.png`,stop=()=>{stream?.getTracks().forEach(t=>t.stop());stream=null;clearInterval(timer);timer=null},esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),stats=m=>{let a=statNames.map((n,i)=>({name:n,value:Math.max(1,Math.min(5,Number((m.stats||[])[i]?.value||1)))})),t=a.reduce((x,y)=>x+y.value,0);while(t>12){let x=a.find(y=>y.value>1);x.value--;t--}while(t<6){let x=a.find(y=>y.value<5);x.value++;t++}return a},statsHtml=m=>`<div class="stats">${stats(m).map(s=>`<div class="stat"><b>${s.name}</b> ${s.value}<div class="bar"><div class="fill" style="width:${s.value*20}%"></div></div></div>`).join('')}</div>`,card=(m,core=false)=>m?`<article class="monster-card"><img class="monster-img" src="${core?(m.core||''):img(m)}" alt="${esc(m.name)}"><h2 class="name">${esc(m.name)}</h2>${core?'':statsHtml(m)}</article>`:'<p class="center">モンスターがいません。</p>';
 if(Array.isArray(state.history)&&state.history.some(item=>item?.core)){state.history=state.history.map(({core,...item})=>item);save()}
+if(Array.isArray(state.monsters)&&state.monsters.some(monster=>Array.isArray(monster.capturedCores)&&monster.capturedCores.length>10)){state.monsters.forEach(monster=>{if(Array.isArray(monster.capturedCores))monster.capturedCores=monster.capturedCores.slice(0,10)});save()}
 function shell(t,b,close=true){stop();root.innerHTML=`${close?'<button class="close" id="close">×</button>':''}<h1>${t}</h1>${b}`;if(close)document.querySelector('#close').onclick=main}
 function initial(){let a=[1,1,1,1];for(let i=0;i<2;i++){let c=a.map((v,j)=>v<5?j:-1).filter(j=>j>=0);a[c[Math.random()*c.length|0]]++}return statNames.map((name,i)=>({name,value:a[i]}))}
 function main(){if(!state.user)return register();let m=sel();shell(m?.name||'モンスター未登録',`<p class="center">トレーナー：${esc(state.user)}</p>${card(m)}<div class="actions"><button class="btn pink" id="issue">モンスターを発行</button><button class="btn gold" id="warehouse">モンスター倉庫</button><button class="btn purple" id="battle">対戦する</button><button class="btn gold" id="history">対戦履歴</button><button class="btn green" id="grow">育てる</button><button class="btn" id="core">モンスターのコア画像を見る</button></div><button class="btn" id="admin">管理ページに戻る</button>`,false);document.querySelector('#issue').onclick=()=>camera(false);document.querySelector('#warehouse').onclick=warehouse;document.querySelector('#battle').onclick=battle;document.querySelector('#history').onclick=history;document.querySelector('#grow').onclick=()=>camera(true);document.querySelector('#core').onclick=core;document.querySelector('#admin').onclick=()=>location.href=location.pathname}
@@ -72,7 +73,7 @@ function showBattle(me,raw){
     root.innerHTML='<div id="battleResult" class="battle-result '+(result==='勝利'?'is-win':result==='敗北'?'is-lose':'is-draw')+'"><div class="battle-result-title">'+result+'</div>'+core+message+(core?'<p class="battle-result-guide">保存または捨てるを選んでください</p>':'<p class="battle-result-guide">画面をタップするとメイン画面に戻ります</p>')+'</div>';
     if(core){
       document.querySelector('#discardCapturedCore').onclick=event=>{event.stopPropagation();main()};
-      document.querySelector('#saveCapturedCore').onclick=async event=>{event.stopPropagation();const stored=state.monsters.find(monster=>monster.id===me.id);if(stored){stored.capturedCores=Array.isArray(stored.capturedCores)?stored.capturedCores:[];stored.capturedCores.unshift({image:enemy.core,monsterName:enemy.name,trainer:enemy.trainer||'不明',capturedAt:new Date().toISOString()});save();await api(stored)}main()};
+      document.querySelector('#saveCapturedCore').onclick=async event=>{event.stopPropagation();const stored=state.monsters.find(monster=>monster.id===me.id);if(stored){stored.capturedCores=Array.isArray(stored.capturedCores)?stored.capturedCores:[];stored.capturedCores.unshift({image:enemy.core,monsterName:enemy.name,trainer:enemy.trainer||'不明',capturedAt:new Date().toISOString()});stored.capturedCores=stored.capturedCores.slice(0,10);save();await api(stored)}main()};
     }else document.querySelector('#battleResult').onclick=main;
   };
   const step=()=>{
@@ -139,7 +140,7 @@ function showSharedBattle(me,enemy,battleData,role){
     root.innerHTML='<div id="battleResult" class="battle-result '+(won?'is-win':draw?'is-draw':'is-lose')+'"><div class="battle-result-title">'+result+'</div>'+captured+defeated+(captured?'<p class="battle-result-guide">保存または捨てるを選んでください</p>':'<p class="battle-result-guide">画面をタップするとメイン画面に戻ります</p>')+'</div>';
     if(captured){
       document.querySelector('#discardCapturedCore').onclick=event=>{event.stopPropagation();main()};
-      document.querySelector('#saveCapturedCore').onclick=async event=>{event.stopPropagation();const stored=state.monsters.find(monster=>monster.id===me.id);if(stored){stored.capturedCores=Array.isArray(stored.capturedCores)?stored.capturedCores:[];stored.capturedCores.unshift({image:enemy.core,monsterName:enemy.name,trainer:enemy.trainer||'不明',capturedAt:new Date().toISOString()});save();await api(stored)}main()};
+      document.querySelector('#saveCapturedCore').onclick=async event=>{event.stopPropagation();const stored=state.monsters.find(monster=>monster.id===me.id);if(stored){stored.capturedCores=Array.isArray(stored.capturedCores)?stored.capturedCores:[];stored.capturedCores.unshift({image:enemy.core,monsterName:enemy.name,trainer:enemy.trainer||'不明',capturedAt:new Date().toISOString()});stored.capturedCores=stored.capturedCores.slice(0,10);save();await api(stored)}main()};
     }else document.querySelector('#battleResult').onclick=main;
   };
   const step=()=>{
@@ -158,10 +159,12 @@ history=function(){shell('対戦履歴',state.history.length?state.history.map(i
 
 core=function(){
   const monster=sel();
-  if(!monster)return shell('奪取したコア画像','<p class="center">表示するモンスターがありません。</p>');
+  if(!monster)return shell('モンスターのコア画像','<p class="center">表示するモンスターがありません。</p>');
   const captures=Array.isArray(monster.capturedCores)?monster.capturedCores:[];
-  const capturedHtml=captures.length?'<section class="captured-core-list"><h2>保存したコア画像</h2>'+captures.map(item=>'<article class="captured-core"><img class="core-img" src="'+item.image+'" alt="'+esc(item.monsterName)+'のコア画像"><p><b>'+esc(item.monsterName)+'</b><br>トレーナー：'+esc(item.trainer||'不明')+'</p></article>').join('')+'</section>':'<p class="center">保存したコア画像はまだありません。</p>';
-  shell('奪取したコア画像',capturedHtml);
+  const date=value=>{const parsed=new Date(value);return Number.isNaN(parsed.getTime())?'不明':parsed.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'})};
+  const capturedHtml=captures.length?'<section class="captured-core-list"><h2>奪取したコア画像（'+captures.length+'/10）</h2>'+captures.map((item,index)=>'<article class="captured-core"><img class="core-img" src="'+item.image+'" alt="奪取したコア画像"><p>相手トレーナー：'+esc(item.trainer||'不明')+'<br>対戦日：'+esc(date(item.capturedAt))+'</p><button class="btn gold" data-discard-capture="'+index+'">捨てる</button></article>').join('')+'</section>':'<p class="center">保存したコア画像はまだありません。</p>';
+  shell('モンスターのコア画像',capturedHtml);
+  document.querySelectorAll('[data-discard-capture]').forEach(button=>button.onclick=async()=>{const index=Number(button.dataset.discardCapture);monster.capturedCores.splice(index,1);save();await api(monster);core()});
 };
 
 main=function(){
