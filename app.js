@@ -174,9 +174,11 @@ core=function(){
 };
 
 function runnerGame(){
+  document.querySelector('meta[name="viewport"]')?.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no');
+  document.documentElement.style.touchAction='none';
   let x=90,y=0,vy=0,scroll=0,raf=0,keys={left:false,right:false},ground=0;
   const platforms=[{x:0,w:900,y:0},{x:1040,w:420,y:0},{x:1640,w:520,y:0},{x:2340,w:620,y:0},{x:3160,w:760,y:0}];
-  shell('たまの横スクロール',`<div class="runner-wrap"><canvas id="runnerCanvas"></canvas><div class="runner-hint">左右ボタン：移動　／　中央ボタン：ジャンプ</div><div class="runner-pad"><button data-dir="left">◀</button><button id="runnerJump">▲</button><button data-dir="right">▶</button></div></div><button class="btn gold" id="runnerBack">メイン画面へ戻る</button>`);
+  shell('たまの横スクロール',`<div class="runner-wrap"><canvas id="runnerCanvas"></canvas><div class="runner-hint">左右ボタン：移動　／　中央ボタン：ジャンプ</div><div class="runner-pad"><button data-dir="left">◀</button><button id="runnerJump">▲</button><button data-dir="right">▶</button></div></div>`,false);
   const canvas=document.querySelector('#runnerCanvas'),ctx=canvas.getContext('2d'),pad=document.querySelector('.runner-pad');
   const resize=()=>{canvas.width=Math.max(280,innerWidth)*devicePixelRatio;canvas.height=Math.min(760,innerHeight*0.68)*devicePixelRatio;canvas.style.width='100%';canvas.style.height=(canvas.height/devicePixelRatio)+'px';ground=canvas.height/devicePixelRatio-92};
   resize();addEventListener('resize',resize);
@@ -185,7 +187,7 @@ function runnerGame(){
   pad.querySelectorAll('button').forEach(b=>{const d=b.dataset.dir;b.addEventListener('pointerdown',e=>{e.preventDefault();keys[d]=true;b.setPointerCapture(e.pointerId)});['pointerup','pointercancel','pointerleave'].forEach(t=>b.addEventListener(t,()=>keys[d]=false))});
   const draw=()=>{const w=canvas.width/devicePixelRatio,h=canvas.height/devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);ctx.clearRect(0,0,w,h);ctx.fillStyle='#b9efff';ctx.fillRect(0,0,w,h);ctx.fillStyle='#8ed6f0';for(let i=-1;i<8;i++){ctx.beginPath();ctx.arc(i*180-scroll*.15%180,h-120,115,Math.PI,0);ctx.fill()}ctx.fillStyle='#72c96b';ctx.fillRect(0,ground,w,h-ground);ctx.save();ctx.translate(-scroll,0);platforms.forEach(p=>{ctx.fillStyle='#4b9b55';ctx.fillRect(p.x,ground-p.y,p.w,18);ctx.fillStyle='#a9e275';ctx.fillRect(p.x,ground-p.y,p.w,6)});ctx.fillStyle='#f3b23f';[620,1250,1900,2700,3440].forEach(c=>{ctx.beginPath();ctx.arc(c,ground-45,12,0,Math.PI*2);ctx.fill()});ctx.fillStyle='#ef6a9e';ctx.beginPath();ctx.arc(x,ground-y-22,22,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#24123d';ctx.lineWidth=4;ctx.stroke();ctx.restore();};
   const tick=()=>{const speed=(keys.right?4:0)-(keys.left?4:0);x=Math.max(20,Math.min(3800,x+speed));if(speed)scroll=Math.max(0,Math.min(3500,scroll+speed));y+=vy;vy-=.65;if(y<0){y=0;vy=0}draw();raf=requestAnimationFrame(tick)};
-  document.querySelector('#runnerBack').onclick=()=>{cancelAnimationFrame(raf);removeEventListener('resize',resize);main()};tick();
+  tick();
 }
 
 main=function(){
@@ -194,11 +196,11 @@ main=function(){
   const monster=sel();
   const feelings=GAME_DATA.feelings||[];
   const feeling=feelings[Math.floor(Math.random()*feelings.length)]||'元気です';
-  shell('',`<p class="center">トレーナー：${esc(state.user)}</p><div id="mainMonsterToggle">${card(monster)}</div><div class="actions"><button class="btn pink" id="issue">モンスターを発行</button><button class="btn gold" id="warehouse">モンスター倉庫</button><button class="btn purple" id="battle">対戦する</button><button class="btn gold" id="history">対戦履歴</button><button class="btn green" id="grow">育てる</button><button class="btn" id="core">奪取したコア画像を見る</button></div><button class="btn purple" id="runner">たまの横スクロールで遊ぶ</button><button class="btn" id="admin">管理ページに戻る</button>`,false);
+  shell('',`<p class="center">トレーナー：${esc(state.user)}</p><div id="mainMonsterToggle">${card(monster)}</div><div class="actions"><button class="btn pink" id="issue">モンスターを発行</button><button class="btn gold" id="warehouse">モンスター倉庫</button><button class="btn purple" id="battle">対戦する</button><button class="btn gold" id="history">対戦履歴</button><button class="btn green" id="grow">育てる</button><button class="btn" id="core">奪取したコア画像を見る</button></div><button class="btn" id="admin">管理ページに戻る</button>`,false);
   root.querySelector('h1')?.remove();
   if(monster)root.querySelector('#mainMonsterToggle .name')?.insertAdjacentHTML('afterend','<p class="monster-feeling">モンスターの気持ち：'+esc(feeling)+'</p>');
   if(monster?.core){const image=document.querySelector('#mainMonsterToggle .monster-img');let showingCore=false;image.onclick=()=>{showingCore=!showingCore;image.src=showingCore?monster.core:img(monster);image.alt=showingCore?monster.name+'のコア画像':monster.name;image.classList.toggle('showing-core',showingCore)}}
-  document.querySelector('#issue').onclick=()=>camera(false);document.querySelector('#warehouse').onclick=warehouse;document.querySelector('#battle').onclick=battle;document.querySelector('#history').onclick=history;document.querySelector('#grow').onclick=()=>camera(true);document.querySelector('#core').onclick=core;document.querySelector('#runner').onclick=runnerGame;document.querySelector('#admin').onclick=()=>location.href=location.pathname;
+  document.querySelector('#issue').onclick=()=>camera(false);document.querySelector('#warehouse').onclick=warehouse;document.querySelector('#battle').onclick=battle;document.querySelector('#history').onclick=history;document.querySelector('#grow').onclick=()=>camera(true);document.querySelector('#core').onclick=core;document.querySelector('#admin').onclick=()=>location.href=location.pathname;
 };
 
 function syncAccount(trainer){fetch('/api/monsters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'account',room,trainer})}).catch(()=>{})}
@@ -229,5 +231,5 @@ if(localStorage.getItem(morningResetKey)!=='done'){
   save();
   localStorage.setItem(morningResetKey,'done');
 }
-if(new URLSearchParams(location.search).has('room'))loadSharedState().finally(()=>state.user?main():register());else admin();
+if(new URLSearchParams(location.search).has('runner'))runnerGame();else if(new URLSearchParams(location.search).has('room'))loadSharedState().finally(()=>state.user?main():register());else admin();
 })();
