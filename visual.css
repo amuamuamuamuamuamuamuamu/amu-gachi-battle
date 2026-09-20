@@ -60,3 +60,4 @@
 .story-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:20px}.story-choices>div{display:contents}.story-choices .slot-reel{min-height:72px;font-size:clamp(13px,3.5vw,21px)}.story-decide{display:block;margin:26px auto 4px;padding:15px 42px;border:4px solid #24123d;border-radius:16px;background:#f4cf67;color:#24123d;font:inherit;font-size:clamp(20px,5vw,30px);font-weight:900;box-shadow:0 5px 0 #24123d;cursor:pointer}.story-decide:active{transform:translateY(4px);box-shadow:0 1px 0 #24123d}
 .story-choices .slot-reel:not(.stopped){color:transparent;text-shadow:none}
 .story-choices .slot-reel{transition:min-height .16s ease,background .16s ease}.story-choices .slot-reel[data-reel-open="1"]{min-height:112px;background:#fff3bd}.reel-menu{display:none}.story-choices .slot-reel:not(.stopped){color:transparent;text-shadow:none}
+.story-choices .slot-reel.reel-active{min-height:112px;background:#fff3bd;color:#24123d}
