@@ -54,6 +54,12 @@
 .runner-pad{display:flex;justify-content:center;gap:18px;margin:2px 0 8px}
 .runner-pad button{width:76px;height:58px;border:3px solid #24123d;border-radius:18px;background:#f4cf67;color:#24123d;font-size:28px;font-weight:1000;touch-action:none;user-select:none;-webkit-user-select:none}
 .runner-pad button:active{transform:translateY(3px);background:#f06aa8;color:#fff}
+/* 画面サイズに関係なく、下4分の1を操作エリアにする */
+.runner-wrap{min-height:100dvh;position:relative;gap:0;overflow:hidden}
+#runnerCanvas{height:75dvh;min-height:0;aspect-ratio:auto;object-fit:fill}
+.runner-pad{position:absolute;z-index:12;left:0;right:0;bottom:0;height:25dvh;margin:0;padding:clamp(8px,3vh,32px) clamp(12px,5vw,48px);display:flex;align-items:center;justify-content:center;gap:clamp(10px,5vw,42px);background:rgba(255,250,240,.96);border-top:3px solid #24123d;box-shadow:0 -6px 18px #10051e33}
+.runner-pad button{width:clamp(68px,22vw,118px);height:clamp(58px,10vh,92px);font-size:clamp(25px,7vw,42px)}
+.key-count{position:absolute;z-index:13;left:0;right:0;bottom:25dvh;text-align:center;padding:6px 0;background:rgba(255,250,240,.96);font-size:clamp(15px,4vw,24px);font-weight:900}
 .slot-bubble{position:absolute;z-index:20;left:50%;top:42%;transform:translate(-50%,-50%);width:min(92%,620px);padding:24px 14px;background:#fffaf0;border:5px solid #24123d;border-radius:28px;box-shadow:0 8px 0 #24123d;color:#24123d;text-align:center;font-size:24px}.slot-bubble:after{content:'';position:absolute;bottom:-28px;left:48%;border:14px solid transparent;border-top-color:#24123d}.slot-reels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}.slot-reel{min-height:84px;padding:8px 4px;border:3px solid #d7b62c;border-radius:12px;background:#fff;color:#24123d;font:inherit;font-size:clamp(16px,4vw,24px);font-weight:900;cursor:pointer}.slot-reel:not(.stopped){animation:slotShake .12s linear infinite alternate}.slot-reel.stopped{background:#f4cf67}@keyframes slotShake{to{transform:translateY(3px)}}
 .slot-result{display:block;width:min(100%,520px);max-height:280px;object-fit:cover;margin:16px auto 0;border:3px solid #24123d;border-radius:14px}
 .slot-close{position:absolute;right:10px;top:8px;width:42px;height:42px;border:3px solid #24123d;border-radius:50%;background:#f06aa8;color:#fff;font-size:30px;font-weight:900;line-height:1}.key-get{margin:10px 0 0;color:#b57900;font-weight:900}
