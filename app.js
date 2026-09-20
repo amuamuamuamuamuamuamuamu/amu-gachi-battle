@@ -176,6 +176,11 @@ core=function(){
 function runnerGame(){
   document.querySelector('meta[name="viewport"]')?.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no');
   document.documentElement.style.touchAction='none';
+  document.addEventListener('dblclick',runnerBlock,{passive:false});
+  document.addEventListener('contextmenu',runnerBlock,{passive:false});
+  document.addEventListener('selectstart',runnerBlock,{passive:false});
+  document.addEventListener('gesturestart',runnerBlock,{passive:false});
+  function runnerBlock(event){event.preventDefault()}
   let x=100,y=600,vy=0,scroll=0,raf=0,keys={left:false,right:false},ground=0,grounded=true;
   const WORLD_WIDTH=5000,PLAYER_SIZE=200,levelImage=new Image(),visualImage=new Image(),catSprite=new Image();levelImage.src='l1.png';visualImage.src='m1.png';catSprite.src='cat-sprites.png';
   const platforms=[{x:0,w:900,y:0},{x:1040,w:420,y:0},{x:1640,w:520,y:0},{x:2340,w:620,y:0},{x:3160,w:760,y:0}];
