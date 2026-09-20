@@ -197,7 +197,8 @@ function runnerGame(){
   const canStand=(wx,worldY)=>{if(!levelImage.complete||!levelImage.naturalWidth)return true;const px=Math.floor(wx/mapScale()),py=Math.floor(worldY/mapScale());if(px<0||py<0||px>=levelImage.naturalWidth||py>=levelImage.naturalHeight)return false;const c=document.createElement('canvas');c.width=c.height=1;const q=c.getContext('2d');q.drawImage(levelImage,px,py,1,1,0,0,1,1);return q.getImageData(0,0,1,1).data[0]>200};
   const draw=()=>{const w=canvas.width/devicePixelRatio,h=canvas.height/devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);ctx.fillStyle='#b9efff';ctx.fillRect(0,0,w,h);const mh=mapHeight(),cameraY=Math.max(0,Math.min(mh-h,y-350));ctx.drawImage(visualImage.complete?visualImage:levelImage,-scroll,h-mh+cameraY,WORLD_WIDTH,mh);const moving=keys.left||keys.right,row=!grounded?3:moving?(keys.left?1:2):0,frame=Math.floor(performance.now()/140)%4;if(catSprite.complete)ctx.drawImage(catSprite,frame*320,row*320,320,320,x-scroll,h-(y-cameraY)-PLAYER_SIZE,PLAYER_SIZE,PLAYER_SIZE);};
   const tick=()=>{const speed=(keys.right?9:0)-(keys.left?9:0),nextX=Math.max(0,Math.min(WORLD_WIDTH-PLAYER_SIZE,x+speed));if(speed&&canStand(nextX+PLAYER_SIZE/2,mapHeight()-y-2))x=nextX;const belowIsBlack=!canStand(x+PLAYER_SIZE/2,mapHeight()-y-2);if(vy<=0&&belowIsBlack)grounded=true;const nextY=y+vy;if(vy<0&&!canStand(x+PLAYER_SIZE/2,mapHeight()-nextY-2)){vy=0;grounded=true}else{y=nextY;if(vy>0)grounded=false}if(y<0){y=0;vy=0;grounded=true}vy-=1.1;scroll=Math.max(0,Math.min(WORLD_WIDTH-700, x-84));draw();raf=requestAnimationFrame(tick)};
-  tick();
+  const startRunner=()=>{x=100;y=600;vy=0;grounded=true;tick()};
+  if(levelImage.complete&&levelImage.naturalWidth)startRunner();else levelImage.onload=startRunner;
 }
 
 main=function(){
