@@ -176,7 +176,8 @@ core=function(){
 function runnerGame(){
   document.querySelector('meta[name="viewport"]')?.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no');
   document.documentElement.style.touchAction='none';
-  let x=90,y=0,vy=0,scroll=0,raf=0,keys={left:false,right:false},ground=0;
+  let x=100,y=0,vy=0,scroll=0,raf=0,keys={left:false,right:false},ground=0;
+  const WORLD_WIDTH=5000,PLAYER_SIZE=200,levelImage=new Image();levelImage.src='l1.png';
   const platforms=[{x:0,w:900,y:0},{x:1040,w:420,y:0},{x:1640,w:520,y:0},{x:2340,w:620,y:0},{x:3160,w:760,y:0}];
   shell('たまの横スクロール',`<div class="runner-wrap"><canvas id="runnerCanvas"></canvas><div class="runner-hint">左右ボタン：移動　／　中央ボタン：ジャンプ</div><div class="runner-pad"><button data-dir="left">◀</button><button id="runnerJump">▲</button><button data-dir="right">▶</button></div></div>`,false);
   const canvas=document.querySelector('#runnerCanvas'),ctx=canvas.getContext('2d'),pad=document.querySelector('.runner-pad');
@@ -185,8 +186,10 @@ function runnerGame(){
   const jump=()=>{if(y<=0){vy=13}};
   document.querySelector('#runnerJump').addEventListener('pointerdown',e=>{e.preventDefault();jump()});
   pad.querySelectorAll('button').forEach(b=>{const d=b.dataset.dir;b.addEventListener('pointerdown',e=>{e.preventDefault();keys[d]=true;b.setPointerCapture(e.pointerId)});['pointerup','pointercancel','pointerleave'].forEach(t=>b.addEventListener(t,()=>keys[d]=false))});
-  const draw=()=>{const w=canvas.width/devicePixelRatio,h=canvas.height/devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);ctx.clearRect(0,0,w,h);ctx.fillStyle='#b9efff';ctx.fillRect(0,0,w,h);ctx.fillStyle='#8ed6f0';for(let i=-1;i<8;i++){ctx.beginPath();ctx.arc(i*180-scroll*.15%180,h-120,115,Math.PI,0);ctx.fill()}ctx.fillStyle='#72c96b';ctx.fillRect(0,ground,w,h-ground);ctx.save();ctx.translate(-scroll,0);platforms.forEach(p=>{ctx.fillStyle='#4b9b55';ctx.fillRect(p.x,ground-p.y,p.w,18);ctx.fillStyle='#a9e275';ctx.fillRect(p.x,ground-p.y,p.w,6)});ctx.fillStyle='#f3b23f';[620,1250,1900,2700,3440].forEach(c=>{ctx.beginPath();ctx.arc(c,ground-45,12,0,Math.PI*2);ctx.fill()});ctx.fillStyle='#ef6a9e';ctx.beginPath();ctx.arc(x,ground-y-22,22,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#24123d';ctx.lineWidth=4;ctx.stroke();ctx.restore();};
-  const tick=()=>{const speed=(keys.right?4:0)-(keys.left?4:0);x=Math.max(20,Math.min(3800,x+speed));if(speed)scroll=Math.max(0,Math.min(3500,scroll+speed));y+=vy;vy-=.65;if(y<0){y=0;vy=0}draw();raf=requestAnimationFrame(tick)};
+  const mapScale=()=>WORLD_WIDTH/(levelImage.naturalWidth||1600),mapHeight=()=>levelImage.naturalHeight*mapScale();
+  const canStand=(wx,worldY)=>{if(!levelImage.complete||!levelImage.naturalWidth)return true;const px=Math.floor(wx/mapScale()),py=Math.floor(worldY/mapScale());if(px<0||py<0||px>=levelImage.naturalWidth||py>=levelImage.naturalHeight)return false;const c=document.createElement('canvas');c.width=c.height=1;const q=c.getContext('2d');q.drawImage(levelImage,px,py,1,1,0,0,1,1);return q.getImageData(0,0,1,1).data[0]>200};
+  const draw=()=>{const w=canvas.width/devicePixelRatio,h=canvas.height/devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);ctx.fillStyle='#b9efff';ctx.fillRect(0,0,w,h);const mh=mapHeight();ctx.drawImage(levelImage, -scroll, h-mh);ctx.fillStyle='#ef6a9e';ctx.beginPath();ctx.arc(x-scroll+w*.12,h-y-PLAYER_SIZE/2,PLAYER_SIZE/2,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#24123d';ctx.lineWidth=5;ctx.stroke()};
+  const tick=()=>{const speed=(keys.right?9:0)-(keys.left?9:0),nextX=Math.max(0,Math.min(WORLD_WIDTH-PLAYER_SIZE,x+speed));if(speed&&canStand(nextX+PLAYER_SIZE/2,mapHeight()-y-2))x=nextX;y+=vy;vy-=1.1;if(y<0){y=0;vy=0}scroll=Math.max(0,Math.min(WORLD_WIDTH-innerWidth, x-innerWidth*.12));draw();raf=requestAnimationFrame(tick)};
   tick();
 }
 
