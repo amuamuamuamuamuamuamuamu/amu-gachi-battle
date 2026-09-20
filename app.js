@@ -177,6 +177,9 @@ function runnerGame(){
   document.querySelector('meta[name="viewport"]')?.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no');
   document.documentElement.style.zoom='1';
   document.body.style.zoom='1';
+  document.body.style.userSelect='none';
+  document.body.style.webkitUserSelect='none';
+  document.body.style.webkitTouchCallout='none';
   document.documentElement.style.touchAction='none';
   document.addEventListener('dblclick',runnerBlock,{passive:false});
   document.addEventListener('contextmenu',runnerBlock,{passive:false});
