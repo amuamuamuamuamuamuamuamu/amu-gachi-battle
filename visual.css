@@ -76,3 +76,4 @@
 .story-choices>.simple-story-fixed{display:flex!important;visibility:visible!important;opacity:1!important;outline:0 solid transparent}
 .slot-bubble:has(.slot-result) .simple-story-select{pointer-events:none;user-select:none;opacity:.7}.slot-bubble:has(.slot-result) .simple-story-fixed{pointer-events:none}
 .birth-confetti{position:absolute;inset:0;z-index:30;pointer-events:none;overflow:hidden}.birth-confetti i{position:absolute;top:-24px;left:calc(var(--i)*2.3%);color:hsl(calc(var(--i)*47),90%,55%);font-style:normal;font-size:clamp(14px,3vw,28px);animation:confettiFall 1.8s linear infinite;animation-delay:calc(var(--i)*-.04s);transform:rotate(calc(var(--i)*31deg))}@keyframes confettiFall{to{top:105%;transform:translateX(35px) rotate(500deg)}}
+.birth-confetti i:nth-child(3n){left:8%;animation-delay:-.7s}.birth-confetti i:nth-child(3n+1){left:47%;animation-delay:-1.1s}.birth-confetti i:nth-child(3n+2){left:82%;animation-delay:-.3s}
