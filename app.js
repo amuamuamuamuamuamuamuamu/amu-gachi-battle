@@ -223,7 +223,7 @@ function runnerGame(){
   const paintStaticNpc=()=>{if(ctx&&npcSprite.naturalWidth){const h=canvas.height/devicePixelRatio,z=cameraZoom,mh=mapHeight(),cameraY=cameraMode==='free'?cameraOffsetY:Math.max(0,Math.min(mh-h/z,y-350));const px=(NPC_X-scroll)*z,py=h-(NPC_Y-cameraY)*z-NPC_H*z;ctx.save();ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);ctx.drawImage(npcSprite,0,0,512,684,px,py,NPC_W*z,NPC_H*z);ctx.restore()}requestAnimationFrame(paintStaticNpc)};
   const extraNpcs=[{image:unkomanSprite,x:1650,y:520},{image:inuSprite,x:2550,y:520},{image:nazoSprite,x:3500,y:520},{image:kaminariSprite,x:4350,y:520}];
   const paintExtraNpcs=()=>{if(ctx){const h=canvas.height/devicePixelRatio,z=cameraZoom,mh=mapHeight(),cameraY=cameraMode==='free'?cameraOffsetY:Math.max(0,Math.min(mh-h/z,y-350)),phase=performance.now()/850;ctx.save();ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);extraNpcs.forEach((n,i)=>{if(!n.image.naturalWidth)return;const bob=Math.sin(phase+i*.8)*3,px=(n.x-scroll)*z,py=h-(n.y-cameraY)*z-220*z+bob*z;ctx.drawImage(n.image,px,py,180*z,220*z)});ctx.restore()}requestAnimationFrame(paintExtraNpcs)};
-  const boot=()=>{if(levelImage.complete&&levelImage.naturalWidth){startRunner();requestAnimationFrame(paintCleanGates);requestAnimationFrame(paintStaticNpc);requestAnimationFrame(paintExtraNpcs)}};levelImage.onload=boot;gateImage.onload=boot;boot();
+  const boot=()=>{if(levelImage.complete&&levelImage.naturalWidth){startRunner();requestAnimationFrame(paintCleanGates);requestAnimationFrame(paintExtraNpcs)}};levelImage.onload=boot;gateImage.onload=boot;boot();
 }
 
 main=function(){
