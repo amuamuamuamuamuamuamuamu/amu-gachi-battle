@@ -181,7 +181,7 @@ function runnerGame(){
   const platforms=[{x:0,w:900,y:0},{x:1040,w:420,y:0},{x:1640,w:520,y:0},{x:2340,w:620,y:0},{x:3160,w:760,y:0}];
   shell('たまの横スクロール',`<div class="runner-wrap"><canvas id="runnerCanvas"></canvas><div class="runner-hint">左右ボタン：移動　／　中央ボタン：ジャンプ</div><div class="runner-pad"><button data-dir="left">◀</button><button id="runnerJump">▲</button><button data-dir="right">▶</button></div></div>`,false);
   const canvas=document.querySelector('#runnerCanvas'),ctx=canvas.getContext('2d'),pad=document.querySelector('.runner-pad');
-  const resize=()=>{canvas.width=Math.max(280,innerWidth)*devicePixelRatio;canvas.height=Math.min(760,innerHeight*0.68)*devicePixelRatio;canvas.style.width='100%';canvas.style.height=(canvas.height/devicePixelRatio)+'px';ground=canvas.height/devicePixelRatio-92};
+  const resize=()=>{canvas.width=700*devicePixelRatio;canvas.height=1000*devicePixelRatio;canvas.style.width='100%';canvas.style.height='auto';ground=908};
   resize();addEventListener('resize',resize);
   const jump=()=>{if(y<=0){vy=13}};
   document.querySelector('#runnerJump').addEventListener('pointerdown',e=>{e.preventDefault();jump()});
@@ -189,7 +189,7 @@ function runnerGame(){
   const mapScale=()=>WORLD_WIDTH/(levelImage.naturalWidth||1600),mapHeight=()=>levelImage.naturalHeight*mapScale();
   const canStand=(wx,worldY)=>{if(!levelImage.complete||!levelImage.naturalWidth)return true;const px=Math.floor(wx/mapScale()),py=Math.floor(worldY/mapScale());if(px<0||py<0||px>=levelImage.naturalWidth||py>=levelImage.naturalHeight)return false;const c=document.createElement('canvas');c.width=c.height=1;const q=c.getContext('2d');q.drawImage(levelImage,px,py,1,1,0,0,1,1);return q.getImageData(0,0,1,1).data[0]>200};
   const draw=()=>{const w=canvas.width/devicePixelRatio,h=canvas.height/devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);ctx.fillStyle='#b9efff';ctx.fillRect(0,0,w,h);const mh=mapHeight();ctx.drawImage(levelImage, -scroll, h-mh);ctx.fillStyle='#ef6a9e';ctx.beginPath();ctx.arc(x-scroll+w*.12,h-y-PLAYER_SIZE/2,PLAYER_SIZE/2,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#24123d';ctx.lineWidth=5;ctx.stroke()};
-  const tick=()=>{const speed=(keys.right?9:0)-(keys.left?9:0),nextX=Math.max(0,Math.min(WORLD_WIDTH-PLAYER_SIZE,x+speed));if(speed&&canStand(nextX+PLAYER_SIZE/2,mapHeight()-y-2))x=nextX;y+=vy;vy-=1.1;if(y<0){y=0;vy=0}scroll=Math.max(0,Math.min(WORLD_WIDTH-innerWidth, x-innerWidth*.12));draw();raf=requestAnimationFrame(tick)};
+  const tick=()=>{const speed=(keys.right?9:0)-(keys.left?9:0),nextX=Math.max(0,Math.min(WORLD_WIDTH-PLAYER_SIZE,x+speed));if(speed&&canStand(nextX+PLAYER_SIZE/2,mapHeight()-y-2))x=nextX;y+=vy;vy-=1.1;if(y<0){y=0;vy=0}scroll=Math.max(0,Math.min(WORLD_WIDTH-700, x-84));draw();raf=requestAnimationFrame(tick)};
   tick();
 }
 
