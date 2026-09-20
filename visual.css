@@ -61,3 +61,4 @@
 .story-choices .slot-reel:not(.stopped){color:transparent;text-shadow:none}
 .story-choices .slot-reel{transition:min-height .16s ease,background .16s ease}.story-choices .slot-reel[data-reel-open="1"]{min-height:112px;background:#fff3bd}.reel-menu{display:none}.story-choices .slot-reel:not(.stopped){color:transparent;text-shadow:none}
 .story-choices .slot-reel.reel-active{min-height:112px;background:#fff3bd;color:#24123d}
+.story-choices .slot-reel{touch-action:pan-y;overflow:hidden}.reel-menu{display:none!important}
