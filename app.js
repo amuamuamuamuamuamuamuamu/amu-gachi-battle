@@ -190,7 +190,7 @@ function runnerGame(){
   let x=100,y=600,vy=0,scroll=0,cameraOffsetY=0,cameraZoom=.65,raf=0,keys={left:false,right:false},ground=0,grounded=true,hasKey=false,keyCount=0,gateStates=[false,false,false],gateAnim=[0,0,0],cameraMode='follow',cameraDrag=null,cameraFrom=0,cameraFromY=0,cameraStarted=0,pointers=new Map(),pinchDistance=0,pinchZoom=.65;
   const WORLD_WIDTH=5000,PLAYER_SIZE=200,NPC_X=1250,NPC_Y=600,NPC_W=240,NPC_H=320;let GATES=[],levelImage=new Image(),gateImage=new Image(),visualImage=new Image(),catSprite=new Image(),npcSprite=new Image(),keySprite=new Image();levelImage.src='l1.png';gateImage.src='l2.png';visualImage.src='m1.png';catSprite.src='cat-sprites.png';npcSprite.src='salaryman-npc.png';keySprite.src='key.png';
   const platforms=[{x:0,w:900,y:0},{x:1040,w:420,y:0},{x:1640,w:520,y:0},{x:2340,w:620,y:0},{x:3160,w:760,y:0}];
-  shell('',`<div class="runner-wrap"><canvas id="runnerCanvas"></canvas><div id="keyCount" class="key-count">鍵：0こ</div><div class="runner-hint">左右ボタン：移動　／　中央ボタン：ジャンプ</div><div class="runner-pad"><button data-dir="left">◀</button><button id="runnerJump">▲</button><button data-dir="right">▶</button></div></div>`,false);
+  shell('',`<div class="runner-wrap"><canvas id="runnerCanvas"></canvas><div id="keyCount" class="key-count">鍵：0こ</div><div class="runner-pad"><button data-dir="left">◀</button><button id="runnerJump">▲</button><button data-dir="right">▶</button></div></div>`,false);
   document.querySelector('#app>h1')?.remove();
   const canvas=document.querySelector('#runnerCanvas'),ctx=canvas.getContext('2d'),pad=document.querySelector('.runner-pad');
   const resize=()=>{canvas.width=700*devicePixelRatio;canvas.height=1000*devicePixelRatio;canvas.style.width='100%';canvas.style.height='auto';ground=908};
