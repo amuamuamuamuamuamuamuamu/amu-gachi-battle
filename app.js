@@ -288,7 +288,7 @@ function runnerGame(){
     'カミナリさまがくうちゅうでふくをきた':{index:4,image:'ozisan-birth.png',message:'おじさんがうまれた。'}
   };
   const birthNpcShown=[false,false,false,false,false];
-  function refreshNpcStrip(){document.querySelectorAll('[data-npc-status]').forEach((image,index)=>image.classList.toggle('locked',!birthNpcShown[index]))}
+  function refreshNpcStrip(){document.querySelectorAll('[data-npc-status]').forEach(image=>image.classList.toggle('locked',!birthNpcShown[Number(image.dataset.npcStatus)]))}
   const extraNpcNames=['うんこマン','いぬ','なぞのいきもの','カミナリさま','おじさん'];
   let lastRevealedNpcIndex=-1,gameClearShown=false;
   const revealNpc=preferredIndex=>{birthNpcShown[preferredIndex]=true;refreshNpcStrip();lastRevealedNpcIndex=preferredIndex;if(birthNpcShown.every(Boolean)&&!gameClearShown){gameClearShown=true;setTimeout(()=>{const clear=document.createElement('div');clear.className='game-clear';clear.innerHTML='<strong>ゲームクリア！</strong><small>タップしてつづける</small>';clear.onclick=()=>clear.remove();document.querySelector('.runner-wrap').append(clear)},500)}return preferredIndex};
