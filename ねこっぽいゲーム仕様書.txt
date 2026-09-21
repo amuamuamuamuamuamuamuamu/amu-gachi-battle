@@ -44,4 +44,4 @@
 ・門と鍵のギミックは現在停止中。門は最初から開いていて通過できる。
 
 ■ 公開
-・直リンク：https://amu-gachi-battle.pages.dev/?runner=1
+・直リンク：https://neko-asobi.pages.dev/?runner=1
