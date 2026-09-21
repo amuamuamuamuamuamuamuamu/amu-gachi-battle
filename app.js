@@ -265,7 +265,14 @@ function runnerGame(){
   document.addEventListener('click',e=>{const im=e.target.closest('.slot-result');if(!im||!im.alt.includes('うんこした'))return;e.preventDefault();e.stopImmediatePropagation();if(im.dataset.birth!=='1'){im.dataset.birth='1';im.src='unko-birth.png';return}const from=scroll,target=Math.max(0,Math.min(WORLD_WIDTH-700/ cameraZoom,2200-84));cameraFrom=from;cameraStarted=performance.now();cameraMode='return';im.dataset.done='1';setTimeout(()=>{cameraFrom=scroll;cameraStarted=performance.now();cameraMode='return'},4000)},{capture:true});
   const runUnkoBirth=(box)=>{if(!box||box.dataset.unkoSequence==='1')return;const im=box.querySelector('.slot-result');if(!im||!im.alt.includes('うんこした'))return;box.dataset.unkoSequence='1';setTimeout(()=>{if(!box.isConnected)return;im.src='unko-birth.png'},2000);setTimeout(()=>{if(box.isConnected)box.remove();const spawn=extraNpcs[0],start=scroll,startY=cameraOffsetY,viewW=700/cameraZoom,viewH=1000/cameraZoom,target=Math.max(0,Math.min(WORLD_WIDTH-viewW,spawn.x+180-viewW/2)),targetY=Math.max(0,Math.min(mapHeight()-viewH,spawn.y-220-viewH/2)),t0=performance.now();cameraMode='free';const move=now=>{const p=Math.min(1,(now-t0)/2000),ease=p*p*(3-2*p);scroll=start+(target-start)*ease;cameraOffsetY=startY+(targetY-startY)*ease;if(p<1)requestAnimationFrame(move);else{const fx=document.createElement('div');fx.className='birth-confetti';fx.innerHTML=Array.from({length:42},(_,i)=>'<i style="--i:'+i+'">◆</i>').join('');document.querySelector('.runner-wrap').append(fx);setTimeout(()=>{fx.remove();const lock=performance.now();const wait=()=>{if(performance.now()-lock<4000)requestAnimationFrame(wait);else{const back=scroll,backY=cameraOffsetY,b0=performance.now(),backMove=t=>{const q=Math.min(1,(t-b0)/2000),ee=q*q*(3-2*q);scroll=back+(Math.max(0,Math.min(WORLD_WIDTH-viewW,x-84))-back)*ee;cameraOffsetY=backY+(Math.max(0,Math.min(mapHeight()-viewH,y-350))-backY)*ee;if(q<1)requestAnimationFrame(backMove);else cameraMode='follow'};requestAnimationFrame(backMove)}};wait()},4000)}};requestAnimationFrame(move)},4000)};
   document.addEventListener('click',e=>{}, {capture:false});
-  const birthNpcMap={'ほねになった':{index:1,image:'inu-birth.png',message:'いぬがうまれた。'},'うんこした':{index:0,image:'unko-birth.png',message:'うんこまんがうまれた。'},'かみになった':{index:3,image:'kaminari-birth.png',message:'カミナリさまがうまれた。'},'おどった':{index:2,image:'nazo-birth.png',message:'へんないきものがうまれた。'}};
+  // 誕生するのは、指定された5つの文章が完全一致したときだけ。
+  const birthNpcMap={
+    'おじさんがいえでうんこした':{index:0,image:'unko-birth.png',message:'うんこマンがうまれた。'},
+    'うんこマンがあなのなかでおどった':{index:2,image:'nazo-birth.png',message:'へんないきものがうまれた。'},
+    'なぞのいきものがしげみでほねになった':{index:1,image:'inu-birth.png',message:'いぬがうまれた。'},
+    'いぬがいわのうえでかみになった':{index:3,image:'kaminari-birth.png',message:'カミナリさまがうまれた。'},
+    'カミナリさまがくうちゅうでふくをきた':{index:0,image:'ozisan-birth.png',message:'あたらしいNPCがうまれた。'}
+  };
   const birthNpcShown=[false,false,false,false];
   const extraNpcNames=['うんこマン','いぬ','へんないきもの','カミナリさま'];
   let lastRevealedNpcIndex=-1;
