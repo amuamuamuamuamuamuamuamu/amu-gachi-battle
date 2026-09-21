@@ -56,8 +56,8 @@
 .runner-pad button:active{transform:translateY(3px);background:#f06aa8;color:#fff}
 /* 画面サイズに関係なく、下4分の1を操作エリアにする */
 .runner-wrap{min-height:100dvh;position:relative;gap:0;overflow:hidden}
-#runnerCanvas{height:67dvh;min-height:0;aspect-ratio:auto;object-fit:fill}
-.npc-status{height:8dvh;display:flex;align-items:center;justify-content:space-evenly;padding:2px 8px;background:#fffaf0;border-top:2px solid #24123d;overflow:hidden}.npc-status img{width:18%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 0 #24123d55);transition:filter .25s}.npc-status img.locked{filter:brightness(0)}
+#runnerCanvas{height:75dvh;min-height:0;aspect-ratio:auto;object-fit:fill}
+.runner-pad .npc-status{width:100%;height:6dvh;min-height:34px;display:flex;align-items:center;justify-content:space-evenly;padding:0 8px;overflow:hidden}.npc-status img{width:18%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 0 #24123d55);transition:filter .25s}.npc-status img.locked{filter:brightness(0)}
 .runner-pad{position:absolute;z-index:12;left:0;right:0;bottom:0;height:25dvh;margin:0;padding:clamp(8px,3vh,32px) clamp(12px,5vw,48px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(255,250,240,.96);border-top:3px solid #24123d;box-shadow:0 -6px 18px #10051e33}.runner-move{display:flex;align-items:center;justify-content:center;gap:clamp(10px,5vw,42px)}
 .runner-pad button{width:clamp(68px,22vw,118px);height:clamp(58px,10vh,92px);font-size:clamp(25px,7vw,42px)}
 .runner-debug{display:flex;align-items:center;justify-content:center;gap:6px}.runner-pad .runner-reset{width:auto;height:auto;min-height:0;padding:5px 12px;border-radius:10px;background:#fff;color:#5b3d18;font-size:12px;line-height:1.2}
