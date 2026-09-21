@@ -379,5 +379,5 @@ if(localStorage.getItem(morningResetKey)!=='done'){
   save();
   localStorage.setItem(morningResetKey,'done');
 }
-if(new URLSearchParams(location.search).has('runner'))runnerGame();else if(new URLSearchParams(location.search).has('room'))loadSharedState().finally(()=>state.user?main():register());else admin();
+const launchParams=new URLSearchParams(location.search);if(launchParams.has('runner')||(!launchParams.has('room')&&!launchParams.has('admin')))runnerGame();else if(launchParams.has('room'))loadSharedState().finally(()=>state.user?main():register());else admin();
 })();
