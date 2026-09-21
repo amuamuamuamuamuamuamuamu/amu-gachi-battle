@@ -281,13 +281,13 @@ function runnerGame(){
   // 誕生するのは、指定された5つの文章が完全一致したときだけ。
   const birthNpcMap={
     'おじさんがいえでうんこした':{index:0,image:'unko-birth.png',message:'うんこマンがうまれた。'},
-    'うんこマンがあなのなかでおどった':{index:2,image:'nazo-birth.png',message:'へんないきものがうまれた。'},
+    'うんこマンがあなのなかでおどった':{index:2,image:'nazo-birth.png',message:'なぞのいきものがうまれた。'},
     'なぞのいきものがしげみでほねになった':{index:1,image:'inu-birth.png',message:'いぬがうまれた。'},
     'いぬがいわのうえでかみになった':{index:3,image:'kaminari-birth.png',message:'カミナリさまがうまれた。'},
     'カミナリさまがくうちゅうでふくをきた':{index:4,image:'ozisan-birth.png',message:'おじさんがうまれた。'}
   };
   const birthNpcShown=[false,false,false,false,false];
-  const extraNpcNames=['うんこマン','いぬ','へんないきもの','カミナリさま','おじさん'];
+  const extraNpcNames=['うんこマン','いぬ','なぞのいきもの','カミナリさま','おじさん'];
   let lastRevealedNpcIndex=-1,gameClearShown=false;
   const revealNpc=preferredIndex=>{birthNpcShown[preferredIndex]=true;lastRevealedNpcIndex=preferredIndex;if(birthNpcShown.every(Boolean)&&!gameClearShown){gameClearShown=true;setTimeout(()=>{const clear=document.createElement('div');clear.className='game-clear';clear.innerHTML='<strong>ゲームクリア！</strong><small>タップしてつづける</small>';clear.onclick=()=>clear.remove();document.querySelector('.runner-wrap').append(clear)},500)}return preferredIndex};
   const startBirthSequence=(box,cfg)=>{if(!box||box.dataset.birthSequence==='1')return;box.dataset.birthSequence='1';box.remove();const revealedIndex=revealNpc(cfg.index),spawn=extraNpcs[revealedIndex],start=scroll,startY=cameraOffsetY,viewW=700/cameraZoom,viewH=1000/cameraZoom,target=Math.max(0,Math.min(WORLD_WIDTH-viewW,spawn.x+180-viewW/2)),targetY=spawn.y-220-viewH/2,t0=performance.now();cameraMode='free';const move=now=>{const p=Math.min(1,(now-t0)/2000),ease=p*p*(3-2*p);scroll=start+(target-start)*ease;cameraOffsetY=startY+(targetY-startY)*ease;if(p<1){requestAnimationFrame(move);return}const fx=document.createElement('div');fx.className='birth-confetti';fx.innerHTML=Array.from({length:420},(_,i)=>'<i style="--i:'+i+'">◆</i>').join('');document.querySelector('.runner-wrap').append(fx);const msg=document.createElement('div');msg.className='birth-message';msg.textContent=cfg.message;document.querySelector('.runner-wrap').append(msg);setTimeout(()=>{fx.remove();msg.remove()},4000);setTimeout(()=>{const back=scroll,backY=cameraOffsetY,b0=performance.now(),backMove=t=>{const q=Math.min(1,(t-b0)/2000),ee=q*q*(3-2*q);scroll=back+(Math.max(0,Math.min(WORLD_WIDTH-viewW,x-84))-back)*ee;cameraOffsetY=backY+(Math.max(0,Math.min(mapHeight()-viewH,y-350))-backY)*ee;if(q<1)requestAnimationFrame(backMove);else cameraMode='follow'};requestAnimationFrame(backMove)},4000)};requestAnimationFrame(move)};
