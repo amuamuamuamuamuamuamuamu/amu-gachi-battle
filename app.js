@@ -253,9 +253,8 @@ function runnerGame(){
   // 初期マップは横幅ぴったり(700/2000)、他マップはそのちょうど2倍。
   const INITIAL_CAMERA_ZOOM=700/WORLD_WIDTH,NON_INITIAL_CAMERA_ZOOM=1400/WORLD_WIDTH;
   const returnCamera=()=>{cameraMode='follow';cameraZoom=mapIndex===0?INITIAL_CAMERA_ZOOM:NON_INITIAL_CAMERA_ZOOM;pinchZoom=cameraZoom;manualCameraActive=false;const viewW=700/cameraZoom;scroll=Math.max(0,Math.min(WORLD_WIDTH-viewW,x+PLAYER_SIZE/2-viewW/2));cameraOffsetY=Math.max(0,Math.min(mapHeight()-1000/cameraZoom,y-750))};
-  const centerPlayerAtOneToOne=()=>{cameraMode='free';cameraZoom=1;pinchZoom=1;manualCameraActive=false;targetX=x;targetY=y;scroll=Math.max(0,Math.min(WORLD_WIDTH-700,x+PLAYER_SIZE/2-350));cameraOffsetY=Math.max(0,Math.min(mapHeight()-1000,y-500))};
-  const fitMapToWidth=()=>{cameraMode='free';cameraZoom=Math.max(700/WORLD_WIDTH,.35);pinchZoom=cameraZoom;manualCameraActive=false;scroll=0;cameraOffsetY=Math.max(0,(mapHeight()-1000/cameraZoom)/2)};
-  const centerButton=document.querySelector('#runnerJump');centerButton.textContent='等倍・プレイヤー中央';centerButton.addEventListener('pointerdown',event=>{event.preventDefault();event.stopImmediatePropagation();centerPlayerAtOneToOne()},true);setTimeout(()=>{if(mapIndex===0)fitMapToWidth()},0);setTimeout(()=>{if(raf&&mapIndex===0)fitMapToWidth()},900);
+  // 縮尺はマップ切替時だけに決める。画面幅へ合わせ直す処理は使わない。
+  const centerButton=document.querySelector('#runnerJump');centerButton.textContent='戻る';
   const jump=()=>{};
   let playerHasTapped=false;
   setInterval(()=>{if(!playerHasTapped){targetX=x;targetY=y}},16);
