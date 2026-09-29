@@ -857,13 +857,15 @@ async function runnerGame(){
   const allNpcArtsCollected=()=>updatedNpcDefinitions.every(definition=>{const npc=characterNpcs.find(item=>item.name===definition.name),collected=collectedNpcArts.get(npc?.number)||new Set();return definition.arts.every(art=>{const code=art.match(/^ura(\d{3})_/)?.[1]||art.match(/^custom(\d{3})_/)?.[1];return code&&collected.has(code)})});
 const focusUpdatedNpcArrival=npc=>{if(npc)npc.visible=true};
   let activeNpcForDecision=null;
-  // クイズ中は入力だけ止める。結果でアイテムを得ても、プレイヤー座標やカメラは動かさない。
-  const rememberQuizPlayerPosition=npc=>{if(!npc||!['quiz','survey','ultimate'].includes(npc.eventType))return;joyX=0;joyY=0;playerMoving=false;npc.quizPlayerRestored=true};
-  let npcEventInputLockedUntil=0;
-  const keepPlayerStillAfterNpcEvent=()=>{joyX=0;joyY=0;playerMoving=false;targetX=x;targetY=y;tapPath.length=0;cameraMode='free';manualCameraActive=false;npcEventInputLockedUntil=performance.now()+700};
+  // NPCを押した時点の位置を記録して、会話のクリックが移動操作として残らないようにする。
+  // アイテム渡し・言葉作り・クイズ・アンケートのすべてで共通して使う。
+  let npcEventPlayerAnchor=null,npcEventInputLockedUntil=0;
+  const freezePlayerForNpcEvent=npc=>{if(!npc)return;if(!npcEventPlayerAnchor)npcEventPlayerAnchor={x,y,mapIndex};joyX=0;joyY=0;playerMoving=false;targetX=x;targetY=y;tapPath.length=0;clearTimeout(tapTimer);lastTapAt=0;cameraMode='free';manualCameraActive=false;npcEventInputLockedUntil=performance.now()+700};
+  const keepPlayerStillAfterNpcEvent=()=>{const anchor=npcEventPlayerAnchor;npcEventPlayerAnchor=null;joyX=0;joyY=0;playerMoving=false;tapPath.length=0;clearTimeout(tapTimer);lastTapAt=0;if(anchor&&anchor.mapIndex===mapIndex&&!mapWarpBusy){x=anchor.x;y=anchor.y;targetX=x;targetY=y;vy=0;cameraMode='follow';manualCameraActive=false;centerCameraOnPlayer()}else{targetX=x;targetY=y}npcEventInputLockedUntil=performance.now()+700};
+  const rememberQuizPlayerPosition=npc=>{if(!npc||!['quiz','survey','ultimate'].includes(npc.eventType))return;freezePlayerForNpcEvent(npc);npc.quizPlayerRestored=true};
   document.addEventListener('pointerup',event=>{if(performance.now()>=npcEventInputLockedUntil||!event.target.closest('#runnerCanvas'))return;event.preventDefault();event.stopImmediatePropagation()},{capture:true});
-  new MutationObserver(records=>records.forEach(record=>record.removedNodes.forEach(node=>{if(node.classList?.contains('npc-quiz-question'))keepPlayerStillAfterNpcEvent()}))).observe(characterNpcWrap,{childList:true});
-  document.addEventListener('pointerdown',event=>{const image=event.target.closest('.character-npc'),npc=characterNpcs.find(candidate=>candidate.image===image);rememberQuizPlayerPosition(npc)},true);
+  new MutationObserver(records=>{let npcDialogWasClosed=false;records.forEach(record=>record.removedNodes.forEach(node=>{if(node.classList?.contains('character-npc-bubble')||node.classList?.contains('character-npc-result-bubble'))npcDialogWasClosed=true}));if(npcDialogWasClosed)setTimeout(()=>{if(!document.querySelector('.character-npc-bubble,.character-npc-result-bubble'))keepPlayerStillAfterNpcEvent()},0)}).observe(characterNpcWrap,{childList:true});
+  document.addEventListener('pointerdown',event=>{const image=event.target.closest('.character-npc'),npc=characterNpcs.find(candidate=>candidate.image===image);freezePlayerForNpcEvent(npc);rememberQuizPlayerPosition(npc)},true);
   // NPCツールで登録した「言葉を作る」イベントは、選んだ組み合わせの絵を押す前に用意する。
   // これにより「これにする」で未定義の画像配列を参照して処理が止まらない。
   const prepareWordNpcArts=npc=>{if(!npc)return;npc.arts??=[];const definition=npcEventDefinitions[npc.number]||npcEventDefinitions['npc'+String((npc.index||0)+1).padStart(2,'0')],events=definition?.events||{};Object.entries(events).forEach(([pair,event])=>{if(!event?.art)return;const [left,right]=pair.split(':').map(Number),artIndex=(npc.word1?.length||0)===1?right:left;if(Number.isInteger(artIndex))npc.arts[artIndex]='ura'+String(event.art).padStart(3,'0')+'_custom.png'})};
