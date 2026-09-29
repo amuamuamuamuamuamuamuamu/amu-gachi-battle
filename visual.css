@@ -370,3 +370,6 @@ body:has(.layout-editor),body:has(.layout-editor) .page,body:has(.layout-editor)
 
 /* 勝敗の色と、文字だけに合わせた小さな勝敗吹き出し */
 .battle-result.win,.battle-round.win strong{color:#d9344f}.battle-result.lose,.battle-round.lose strong{color:#2675c9}.battle-result.draw,.battle-round.draw strong{color:#707070}.battle-rounds{align-items:center}.battle-round{width:max-content;min-width:0;min-height:0;justify-self:center;padding:7px 12px}.battle-round strong{font-size:22px;line-height:1.1}@media(max-width:600px){.battle-round{padding:6px 9px}.battle-round strong{font-size:18px}}
+
+/* じゃんけん札は白いデフォルメ手のアイコンで表示する。 */
+.battle-card .battle-hands span{padding:2px;background:transparent;border:0}.battle-card .battle-hands span img{display:block;width:100%;max-width:62px;height:auto;margin:auto;filter:drop-shadow(0 1px 0 rgba(36,18,61,.2))}@media(max-width:600px){.battle-card .battle-hands span img{max-width:52px}}
