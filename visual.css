@@ -373,3 +373,6 @@ body:has(.layout-editor),body:has(.layout-editor) .page,body:has(.layout-editor)
 
 /* じゃんけん札は白いデフォルメ手のアイコンで表示する。 */
 .battle-card .battle-hands span{padding:2px;background:transparent;border:0}.battle-card .battle-hands span img{display:block;width:100%;max-width:62px;height:auto;margin:auto;filter:drop-shadow(0 1px 0 rgba(36,18,61,.2))}@media(max-width:600px){.battle-card .battle-hands span img{max-width:52px}}
+
+/* カード対戦の最終勝敗は、文字幅だけの小さな表示にする。 */
+.battle-editor .battle-result{display:block;width:fit-content;min-height:0;margin:0 auto 16px;padding:0;background:none;border:0;border-radius:0}
