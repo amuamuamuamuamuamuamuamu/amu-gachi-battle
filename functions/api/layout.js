@@ -23,7 +23,8 @@ export async function onRequestPut({request,env}){
 
 export async function onRequestPost({request,env}){
   const body=await request.json().catch(()=>null),id=String(body?.surveyId||''),choice=Number(body?.choice);
-  if(!/^survey[a-zA-Z0-9_-]{1,80}$/.test(id)||(choice!==0&&choice!==1))return new Response(JSON.stringify({error:"invalid survey"}),{status:400,headers});
+  // 既定の多数派問題IDには画像名由来の日本語が含まれるため、Unicodeの文字と数字も受け付ける。
+  if(!/^survey[\p{L}\p{N}_-]{1,160}$/u.test(id)||(choice!==0&&choice!==1))return new Response(JSON.stringify({error:"invalid survey"}),{status:400,headers});
   const key="survey-"+id,current=await env.NEKOSAGASI_LAYOUT.get(key,"json")||[0,0];
   current[choice]=Number(current[choice]||0)+1;
   await env.NEKOSAGASI_LAYOUT.put(key,JSON.stringify(current));
