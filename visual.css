@@ -367,3 +367,6 @@ body:has(.layout-editor),body:has(.layout-editor) .page,body:has(.layout-editor)
 
 /* 透過NPCの背面はカードごとのランダム色。名前は読みやすい黒文字の吹き出しにする。 */
 .battle-card,.battle-card.enemy-card,.battle-card.player-card{background:var(--card-bg,#d8efff)}.battle-card>img{background:transparent}.battle-card-name{padding:6px 12px;border:2px solid #24123d;border-radius:999px;background:#fffdf8;color:#24123d;box-shadow:0 2px 0 rgba(36,18,61,.3);line-height:1.1}.battle-round strong{white-space:nowrap;word-break:keep-all}
+
+/* 勝敗の色と、文字だけに合わせた小さな勝敗吹き出し */
+.battle-result.win,.battle-round.win strong{color:#d9344f}.battle-result.lose,.battle-round.lose strong{color:#2675c9}.battle-result.draw,.battle-round.draw strong{color:#707070}.battle-rounds{align-items:center}.battle-round{width:max-content;min-width:0;min-height:0;justify-self:center;padding:7px 12px}.battle-round strong{font-size:22px;line-height:1.1}@media(max-width:600px){.battle-round{padding:6px 9px}.battle-round strong{font-size:18px}}
