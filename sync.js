@@ -64,6 +64,6 @@
     localStorage.setItem('nekosagasi-layout-v1',JSON.stringify(data));
     const response=await fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)});
     if(!response.ok){alert('保存できませんでした');return}
-    alert('保存しました');
+    window.showSaveSuccess?.();
   },true);
 })();
