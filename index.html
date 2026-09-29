@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <title>ねこさがし</title>
-  <link rel="stylesheet" href="visual.css?v=20260928-no-talk-orb">
-  <script src="game-data.js?v=20260928-map-refresh-2"></script>
-  <script src="sync.js?v=20260928-quiz-editor-safe-1"></script>
+  <link rel="stylesheet" href="visual.css?v=20260929-npc-bubble-top-1">
+  <script src="game-data.js?v=20260929-all-npcs-items-4"></script>
+  <script src="sync.js?v=20260929-lettuce-factory-1"></script>
 </head>
 <body>
   <main class="page"><section id="app" class="card"></section></main>
   <script>
     const q=new URLSearchParams(location.search),j=document.createElement('script');
-    j.src=q.has('topdown')?'app-topdown.js?v=20260928-map-refresh-2':q.has('hiragana')?'app-hiragana.js?v=20260928-map-refresh-2':'app.js?v=20260928-map-refresh-2';
+    j.src=q.has('topdown')?'app-topdown.js?v=20260928-map-refresh-2':q.has('hiragana')?'app-hiragana.js?v=20260928-map-refresh-2':'app.js?v=20260929-npc-no-forced-move-1';
     document.body.append(j);
   </script>
 </body>

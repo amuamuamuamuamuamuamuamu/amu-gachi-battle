@@ -1,0 +1,10 @@
+# Photoshop source files are kept locally for editing and exceed the Pages asset size limit.
+**/*.psd
+キャラクターデザイン/*.psd
+キャラクターデザイン/プレイヤー_待機_4方向4コマ_2000px.psd
+キャラクターデザイン/プレイヤー_歩行_4方向4コマ_2000px.psd
+# 作業用の元画像は公開用アセットに含めない。
+マップ/作業中かold/**
+.repair-backups/**
+.pages-deploy-*/**
+NPC情報.txt

@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "nekosagasi",
+  "pages_build_output_dir": ".",
+  "compatibility_date": "2026-09-24",
+  "kv_namespaces": [
+    { "binding": "NEKOSAGASI_LAYOUT", "id": "82ea7925fe7d47ceb442732030efe50d" }
+  ]
+}
