@@ -6,8 +6,8 @@
   const select=document.querySelector('#npcPicker'),visual=document.querySelector('.npc-picker-visual');
   if(!select||!visual||select.dataset.eventNpcPicker)return;
   let data;try{data=JSON.parse(localStorage.getItem(key)||'{}')}catch{return}
-  const allowedTypes=new Set(['words','item','ultimate','survey','quiz']);
-  const entries=Object.entries(data.npcDefinitions||{}).filter(([id,n])=>id.startsWith('event-')&&allowedTypes.has(n?.eventType||'words')&&n?.eventNpcName&&n?.profileId);
+  const allowedTypes=new Set(['words','item','ultimate','survey','quiz','cardbattle']);
+  const entries=Object.entries(data.npcDefinitions||{}).filter(([id,n])=>id.startsWith('event-')&&allowedTypes.has(n?.eventType||'words')&&n?.eventNpcName&&n?.profileId).map(([id,n])=>[id,{...n,eventNpcName:n.eventType==='cardbattle'?String(n.eventNpcName).replace(/^カードバトル/,'カード'):n.eventNpcName}]);
   if(!entries.length)return;
   window.__eventNpcProfiles=Object.fromEntries(entries.map(([id,n])=>[id,{profileId:n.profileId,name:n.eventNpcName}]));
   const menu=visual.querySelector('.npc-picker-menu'),toggle=visual.querySelector('.npc-picker-toggle');
@@ -42,7 +42,7 @@
 
 /* 現在のマップ素材一覧を、ゲームと配置ツールで同じ順番に表示する。 */
 (()=>{
- const maps=['メインマップ1-1','メインマップ1-2','メインマップ1-3','メインマップ1-4','メインマップ1-5','メインマップ1-6','メインマップ1-7','メインマップ1-8','メインマップ1-9','おしゃれカフェ','ゲームセンター','コンビニ','スーパー','やくざの事務所','ラボ','温泉_男女4区画','家族の家','会社','学校','現代美術館','公衆トイレ','室内動物園','図書館','水耕栽培工場','駄菓子屋','和室のボロアパート'];
+ const maps=['メインマップ1-1','メインマップ1-2','メインマップ1-3','メインマップ1-4','メインマップ1-5','メインマップ1-6','メインマップ1-7','メインマップ1-8','メインマップ1-9','おしゃれカフェ','ゲームセンター','コンビニ','スーパー','やくざの事務所','ラボ','温泉_男女4区画','家族の家','会社','学校','現代美術館','公衆トイレ','室内動物園','図書館','水耕栽培工場','駄菓子屋','和室のボロアパート','爪痕のリビング','植物の広場_メイン3右','植物の広場_メイン4左','植物の広場_メイン6右','植物の広場_メイン8下','植物の広場_メイン9下','謎の闇儀式','ハンバーガー屋_店内'];
  const asset=index=>'/game-assets/maps/'+(index===0?'m1-game.webp':'map'+(index+1)+'-game.webp')+'?v=20260929-map-npc-refresh-1';
  const mount=()=>{
   const select=document.querySelector('#layoutMap'),visual=document.querySelector('.map-picker-visual');

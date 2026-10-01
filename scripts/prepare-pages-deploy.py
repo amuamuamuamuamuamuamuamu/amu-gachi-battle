@@ -27,6 +27,7 @@ for base, directories, files in os.walk(root):
     directories[:] = [
         directory for directory in directories
         if directory.lower() not in {name.lower() for name in excluded_directories}
+        and directory.lower() != "old"
         and not directory.startswith(".restore-")
         and not directory.startswith(".pages-deploy-")
     ]
