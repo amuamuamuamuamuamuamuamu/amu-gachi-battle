@@ -445,19 +445,28 @@ async function runnerGame(){
   const openScenarioTool=()=>{
     document.body.classList.remove('runner-page');
     let layout={};try{layout=JSON.parse(localStorage.getItem('nekosagasi-layout-v1')||'{}')}catch{};
-    const example={id:'test-lost-cat',title:'テスト：迷子の猫を探す',nodes:[
-      {id:'start',type:'npc',npc:'npc04',name:'犬のポチ',text:'公園で猫を見なかった？',x:110,y:300,setFlag:'ポチに会った'},
-      {id:'choice',type:'choice',name:'選択',text:'一緒に探す？',x:430,y:300,needFlag:'ポチに会った'},
-      {id:'help',type:'npc',npc:'npc10',name:'猫のミケ',text:'首輪を見つけたよ！',x:750,y:150,setFlag:'首輪を入手'},
-      {id:'end-good',type:'outcome',name:'猫を発見',text:'首輪を渡して、猫が家へ帰る',x:1080,y:150,needFlag:'首輪を入手',setFlag:'猫を保護'},
-      {id:'end-wait',type:'outcome',name:'保留',text:'あとでまた探しに来よう',x:750,y:470}
+    const mandragora={id:'test-mandragora-voice',title:'マンドラゴラの声',nodes:[
+      {id:'cleaner',type:'npc',npc:'npc32',name:'掃除おばさん',text:'水耕栽培工場の前で、まいばん唸り声がすると話す。',x:70,y:310,setFlag:'工場の唸り声を聞いた'},
+      {id:'locked-factory',type:'choice',name:'鍵のかかった工場',text:'工場には鍵がかかっている。壊して入ることにする。',x:405,y:310,needFlag:'工場の唸り声を聞いた',setFlag:'工場に侵入した'},
+      {id:'mandragora',type:'npc',npc:'npc30',name:'マンドラゴラ',text:'工場の中でマンドラゴラが唸っている。',x:740,y:120,needFlag:'工場に侵入した',setFlag:'マンドラゴラを発見'},
+      {id:'battery-needed',type:'outcome',name:'電池が必要',text:'電池がなく、このままではマンドラゴラが死んでしまう。',x:1075,y:120,needFlag:'マンドラゴラを発見',setFlag:'電池が必要'},
+      {id:'alien',type:'npc',npc:'npc01',name:'宇宙人',text:'あの装置には人間電池が必要だと教えてくれる。',x:1075,y:420,needFlag:'電池が必要',setFlag:'人間電池が必要'},
+      {id:'find-battery',type:'choice',name:'人間電池を探す',text:'人間電池になってくれる人を探すことにする。',x:1410,y:420,needFlag:'人間電池が必要'},
+      {id:'old-man',type:'npc',npc:'npc02',name:'カフェ前のおじいさん',text:'カフェの前に座るおじいさんが、快く人間電池になることを了承してくれる。',x:1745,y:420,setFlag:'人間電池を入手'},
+      {id:'install',type:'outcome',name:'人間電池をはめる',text:'マンドラゴラの装置に人間電池をはめる。',x:2080,y:250,needFlag:'人間電池を入手',setFlag:'マンドラゴラを救った'},
+      {id:'reward',type:'outcome',name:'無限レタスをもらう',text:'お礼に、食べても無くならない無限レタスをマンドラゴラからもらう。',x:2415,y:250,needFlag:'マンドラゴラを救った',setFlag:'無限レタスを入手'}
     ],edges:[
-      {from:'start',to:'choice',label:'話しかける'},
-      {from:'choice',to:'help',label:'一緒に探す'},
-      {from:'choice',to:'end-wait',label:'今はやめる'},
-      {from:'help',to:'end-good',label:'首輪を渡す'}
+      {from:'cleaner',to:'locked-factory',label:'唸り声を調べる'},
+      {from:'locked-factory',to:'mandragora',label:'鍵を壊して入る'},
+      {from:'mandragora',to:'battery-needed',label:'状態を調べる'},
+      {from:'battery-needed',to:'alien',label:'宇宙人に聞く'},
+      {from:'alien',to:'find-battery',label:'情報を得る'},
+      {from:'find-battery',to:'old-man',label:'カフェへ行く'},
+      {from:'old-man',to:'install',label:'了承を得る'},
+      {from:'install',to:'reward',label:'命を救う'}
     ]};
-    layout.scenarioFlows??=[example];if(!layout.scenarioFlows.length)layout.scenarioFlows.push(example);
+    layout.scenarioFlows=(Array.isArray(layout.scenarioFlows)?layout.scenarioFlows:[]).filter(item=>item.id!=='test-lost-cat'&&item.id!=='test-zoo-humandog');
+    if(!layout.scenarioFlows.some(item=>item.id===mandragora.id))layout.scenarioFlows.push(mandragora);
     let flow=layout.scenarioFlows[0],selectedId=flow.nodes[0]?.id||'',connectFrom='',zoom=1,panX=0,panY=0,drag=null,pinch=null;
     const persist=()=>localStorage.setItem('nekosagasi-layout-v1',JSON.stringify(layout));
     const save=async()=>{persist();const status=document.querySelector('#scenarioStatus');status.textContent='保存中…';try{const response=await fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(layout)});if(!response.ok)throw new Error();status.textContent='全端末に保存しました';window.showSaveSuccess?.()}catch{status.textContent='保存できませんでした'}setTimeout(()=>{if(status.isConnected)status.textContent=''},1800)};
