@@ -446,13 +446,13 @@ async function runnerGame(){
     document.body.classList.remove('runner-page');
     let layout={};try{layout=JSON.parse(localStorage.getItem('nekosagasi-layout-v1')||'{}')}catch{};
     const mandragora={id:'test-mandragora-voice',title:'マンドラゴラの声',nodes:[
-      {id:'cleaner',type:'npc',npc:'npc32',name:'掃除おばさん',text:'水耕栽培工場の前で、まいばん唸り声がすると話す。',x:70,y:310,setFlag:'工場の唸り声を聞いた'},
+      {id:'cleaner',type:'npc',npc:'cleaning-lady',name:'掃除するおばさん',text:'水耕栽培工場の前で、まいばん唸り声がすると話す。',x:70,y:310,setFlag:'工場の唸り声を聞いた'},
       {id:'locked-factory',type:'choice',name:'鍵のかかった工場',text:'工場には鍵がかかっている。壊して入ることにする。',x:405,y:310,needFlag:'工場の唸り声を聞いた',setFlag:'工場に侵入した'},
       {id:'mandragora',type:'npc',npc:'npc30',name:'マンドラゴラ',text:'工場の中でマンドラゴラが唸っている。',x:740,y:120,needFlag:'工場に侵入した',setFlag:'マンドラゴラを発見'},
       {id:'battery-needed',type:'outcome',name:'電池が必要',text:'電池がなく、このままではマンドラゴラが死んでしまう。',x:1075,y:120,needFlag:'マンドラゴラを発見',setFlag:'電池が必要'},
       {id:'alien',type:'npc',npc:'npc01',name:'宇宙人',text:'あの装置には人間電池が必要だと教えてくれる。',x:1075,y:420,needFlag:'電池が必要',setFlag:'人間電池が必要'},
       {id:'find-battery',type:'choice',name:'人間電池を探す',text:'人間電池になってくれる人を探すことにする。',x:1410,y:420,needFlag:'人間電池が必要'},
-      {id:'old-man',type:'npc',npc:'npc02',name:'カフェ前のおじいさん',text:'カフェの前に座るおじいさんが、快く人間電池になることを了承してくれる。',x:1745,y:420,setFlag:'人間電池を入手'},
+      {id:'old-man',type:'npc',npc:'seated-grandfather',name:'椅子に座るおじいさん',text:'カフェの前に座るおじいさんが、快く人間電池になることを了承してくれる。',x:1745,y:420,setFlag:'人間電池を入手'},
       {id:'install',type:'outcome',name:'人間電池をはめる',text:'マンドラゴラの装置に人間電池をはめる。',x:2080,y:250,needFlag:'人間電池を入手',setFlag:'マンドラゴラを救った'},
       {id:'reward',type:'outcome',name:'無限レタスをもらう',text:'お礼に、食べても無くならない無限レタスをマンドラゴラからもらう。',x:2415,y:250,needFlag:'マンドラゴラを救った',setFlag:'無限レタスを入手'}
     ],edges:[
@@ -467,6 +467,10 @@ async function runnerGame(){
     ]};
     layout.scenarioFlows=(Array.isArray(layout.scenarioFlows)?layout.scenarioFlows:[]).filter(item=>item.id!=='test-lost-cat'&&item.id!=='test-zoo-humandog');
     if(!layout.scenarioFlows.some(item=>item.id===mandragora.id))layout.scenarioFlows.push(mandragora);
+    const mandragoraFlow=layout.scenarioFlows.find(item=>item.id===mandragora.id);
+    const cleanerNode=mandragoraFlow?.nodes.find(node=>node.id==='cleaner'),oldManNode=mandragoraFlow?.nodes.find(node=>node.id==='old-man');
+    if(cleanerNode)Object.assign(cleanerNode,{npc:'cleaning-lady',name:'掃除するおばさん'});
+    if(oldManNode)Object.assign(oldManNode,{npc:'seated-grandfather',name:'椅子に座るおじいさん'});
     let flow=layout.scenarioFlows[0],selectedId=flow.nodes[0]?.id||'',connectFrom='',zoom=1,panX=0,panY=0,drag=null,pinch=null;
     const persist=()=>localStorage.setItem('nekosagasi-layout-v1',JSON.stringify(layout));
     const save=async()=>{persist();const status=document.querySelector('#scenarioStatus');status.textContent='保存中…';try{const response=await fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(layout)});if(!response.ok)throw new Error();status.textContent='全端末に保存しました';window.showSaveSuccess?.()}catch{status.textContent='保存できませんでした'}setTimeout(()=>{if(status.isConnected)status.textContent=''},1800)};
