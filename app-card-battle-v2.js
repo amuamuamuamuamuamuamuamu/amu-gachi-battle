@@ -235,7 +235,7 @@ async function runnerGame(){
   // ページを読み込み直したら、言葉NPC・所持アイテム・通せん坊を新しいゲームとして初期化する。
   ['amu-runner-npc-inventory-v1','amu-runner-passage-guards-v1'].forEach(key=>localStorage.removeItem(key));
   // シナリオの構成を更新した時は、旧会話の「実行済み」だけを一度消して新しい流れから遊べるようにする。
-  const scenarioProgressVersionKey='amu-runner-scenario-progress-version-v1',scenarioProgressVersion='cleaner-report-v1';if(localStorage.getItem(scenarioProgressVersionKey)!==scenarioProgressVersion){localStorage.removeItem(scenarioFlowFlagsKey);localStorage.removeItem('amu-runner-item-scenario-mandragora-report');for(let index=localStorage.length-1;index>=0;index--){const key=localStorage.key(index);if(key?.startsWith('amu-runner-normal-talk-event-scenario-'))localStorage.removeItem(key)}localStorage.setItem(scenarioProgressVersionKey,scenarioProgressVersion)}
+  const scenarioProgressVersionKey='amu-runner-scenario-progress-version-v1',scenarioProgressVersion='scenario-flow-v2';if(localStorage.getItem(scenarioProgressVersionKey)!==scenarioProgressVersion){localStorage.removeItem(scenarioFlowFlagsKey);localStorage.removeItem('amu-runner-item-scenario-mandragora-report');for(let index=localStorage.length-1;index>=0;index--){const key=localStorage.key(index);if(key?.startsWith('amu-runner-normal-talk-event-scenario-'))localStorage.removeItem(key)}localStorage.setItem(scenarioProgressVersionKey,scenarioProgressVersion)}
   document.body.classList.add('runner-page');
   document.querySelector('meta[name="viewport"]')?.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no');
   document.documentElement.style.zoom='1';
@@ -892,7 +892,7 @@ async function runnerGame(){
   const placedItems=placedObjects.filter(item=>item.kind==='item').map(item=>({...item,collected:localStorage.getItem('amu-runner-item-'+item.id)==='1'}));
   const itemImages=new Map();placedItems.forEach(item=>{const image=new Image();image.src=gameItemSrc(item.item);itemImages.set(item.id,image)});
   const applyPlacedItemProgress=item=>{if(item.setScenarioId&&item.setScenarioNodeId)setScenarioFlowFlag(item.setScenarioId,item.setScenarioNodeId);if(item.outcome)window.dispatchEvent(new CustomEvent('npc-configured-outcome',{detail:item.outcome}))};
-  const collectPlacedItem=item=>{if(!item||item.collected)return false;item.collected=true;localStorage.setItem('amu-runner-item-'+item.id,'1');applyPlacedItemProgress(item);if(isReadableItem(item)){showReadableItem(item);return true}npcInventory.push(item.item);saveInventory();getNpcItem(item.item);return true};
+  const collectPlacedItem=item=>{if(!item||item.collected)return false;if(item.requiresScenarioId&&item.requiresScenarioNodeId&&!readScenarioFlowFlags()[scenarioFlowFlagKey(item.requiresScenarioId,item.requiresScenarioNodeId)])return false;item.collected=true;localStorage.setItem('amu-runner-item-'+item.id,'1');applyPlacedItemProgress(item);if(isReadableItem(item)){showReadableItem(item);return true}npcInventory.push(item.item);saveInventory();getNpcItem(item.item);return true};
   const talkOrbImage=new Image();talkOrbImage.src='アイテム/話せる実.png';
   const drawPlacedItems=(h,z,cameraY)=>{placedItems.filter(item=>item.map===mapIndex&&!item.collected).forEach(item=>{const image=itemImages.get(item.id),wx=item.x/100*WORLD_WIDTH,wy=(100-item.y)/100*mapHeight(),size=120*z;if(image?.naturalWidth)ctx.drawImage(image,(wx-scroll)*z-size/2,h-(wy-cameraY)*z-size/2,size,size)})};
   // しゃべり玉は直接タップでも、プレイヤーが触れた時でも同じ取得処理を通す。
@@ -1197,7 +1197,8 @@ const focusUpdatedNpcArrival=npc=>{if(npc)npc.visible=true};
       if(!definition)return;
       const image=document.createElement('img'),npc={...definition,number,image,placedFromLayout:true,mapIndex:Number(placed.map),x:Number(placed.x)/100*WORLD_WIDTH,y:(100-Number(placed.y))/100*mapHeight(),visible:placed.visible!==false};
       if((npc.eventType||'words')==='words'&&!String(npc.firstMessage||'').trim())npc.firstMessage='こんにちは！';
-      image.className='character-npc';image.src='npc-light/'+(configured?.profileId||number)+'.png?v=20261002-cleaner-npc-1';image.alt=definition.name;
+      const profileAsset=configured?.profileAsset||configured?.profileId||number;
+      image.className='character-npc';image.src='npc-light/'+profileAsset+(String(profileAsset).endsWith('.png')?'':'.png')+'?v=20261002-scenario-flow-1';image.alt=definition.name;
       image.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();if(npc.eventType==='normal'){startNormalNpcEvent(npc);return}if(npc.eventType==='quiz'||npc.eventType==='survey'||npc.eventType==='ultimate'){sanitizeQuizNpc(npc);startQuizNpcEvent(npc);return}if(talkOrbCount>0)openWordNpcIntro(npc);else{const message=document.createElement('div');message.className='character-npc-bubble';message.textContent='話せる実がないよ';characterNpcWrap.append(message);setTimeout(()=>message.remove(),1200)}});
       characterNpcWrap.append(image);characterNpcs.push(npc);
     });
