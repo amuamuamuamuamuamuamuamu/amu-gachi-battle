@@ -453,8 +453,11 @@ async function runnerGame(){
       {id:'alien',type:'npc',npc:'npc01',name:'宇宙人',text:'あの装置には人間電池が必要だと教えてくれる。',x:1075,y:420,needFlag:'電池が必要',setFlag:'人間電池が必要'},
       {id:'find-battery',type:'choice',name:'人間電池を探す',text:'人間電池になってくれる人を探すことにする。',x:1410,y:420,needFlag:'人間電池が必要'},
       {id:'old-man',type:'npc',npc:'seated-grandfather',name:'椅子に座るおじいさん',text:'カフェの前に座るおじいさんが、快く人間電池になることを了承してくれる。',x:1745,y:420,setFlag:'人間電池を入手'},
-      {id:'install',type:'outcome',name:'人間電池をはめる',text:'マンドラゴラの装置に人間電池をはめる。',x:2080,y:250,needFlag:'人間電池を入手',setFlag:'マンドラゴラを救った'},
-      {id:'reward',type:'outcome',name:'無限レタスをもらう',text:'お礼に、食べても無くならない無限レタスをマンドラゴラからもらう。',x:2415,y:250,needFlag:'マンドラゴラを救った',setFlag:'無限レタスを入手'}
+      {id:'install',type:'outcome',name:'人間電池をはめる',text:'マンドラゴラの装置に人間電池をはめる。',x:2080,y:250,needFlag:'人間電池を入手',setFlag:'人間電池を装置にセット'},
+      {id:'silence',type:'outcome',name:'唸り声が消える',text:'電池が動き出し、マンドラゴラの唸り声が消える。',x:2415,y:250,needFlag:'人間電池を装置にセット',setFlag:'マンドラゴラの唸り声が消えた'},
+      {id:'hallucination-leaves',type:'npc',npc:'npc56',name:'幻聴が聞こえる人が消える',text:'メインマップ6の右の道を塞いでいた幻聴が聞こえる人が、いなくなる。',x:2750,y:250,needFlag:'マンドラゴラの唸り声が消えた',setFlag:'幻聴が聞こえる人が消えた'},
+      {id:'road-opens',type:'outcome',name:'メインマップ6右の道が開く',text:'塞がれていた右の道が通れるようになる。',x:3085,y:250,needFlag:'幻聴が聞こえる人が消えた',setFlag:'メインマップ6右の道が開いた'},
+      {id:'reward',type:'outcome',name:'無限レタスをもらう',text:'お礼に、食べても無くならない無限レタスをマンドラゴラからもらう。',x:3420,y:250,needFlag:'メインマップ6右の道が開いた',setFlag:'無限レタスを入手'}
     ],edges:[
       {from:'cleaner',to:'locked-factory',label:'唸り声を調べる'},
       {from:'locked-factory',to:'mandragora',label:'鍵を壊して入る'},
@@ -463,7 +466,10 @@ async function runnerGame(){
       {from:'alien',to:'find-battery',label:'情報を得る'},
       {from:'find-battery',to:'old-man',label:'カフェへ行く'},
       {from:'old-man',to:'install',label:'了承を得る'},
-      {from:'install',to:'reward',label:'命を救う'}
+      {from:'install',to:'silence',label:'電池を入れる'},
+      {from:'silence',to:'hallucination-leaves',label:'唸り声が消える'},
+      {from:'hallucination-leaves',to:'road-opens',label:'道を塞ぐ人が消える'},
+      {from:'road-opens',to:'reward',label:'道を通る'}
     ]};
     layout.scenarioFlows=(Array.isArray(layout.scenarioFlows)?layout.scenarioFlows:[]).filter(item=>item.id!=='test-lost-cat'&&item.id!=='test-zoo-humandog');
     if(!layout.scenarioFlows.some(item=>item.id===mandragora.id))layout.scenarioFlows.push(mandragora);
@@ -471,9 +477,27 @@ async function runnerGame(){
     const cleanerNode=mandragoraFlow?.nodes.find(node=>node.id==='cleaner'),oldManNode=mandragoraFlow?.nodes.find(node=>node.id==='old-man');
     if(cleanerNode)Object.assign(cleanerNode,{npc:'cleaning-lady',name:'掃除するおばさん'});
     if(oldManNode)Object.assign(oldManNode,{npc:'seated-grandfather',name:'椅子に座るおじいさん'});
-    if(layout.scenarioFlowDirection!=='vertical-v1'){
+    if(mandragoraFlow){
+      const replacementNodes={
+        install:{type:'outcome',name:'人間電池をはめる',text:'マンドラゴラの装置に人間電池をはめる。',needFlag:'人間電池を入手',setFlag:'人間電池を装置にセット'},
+        silence:{type:'outcome',name:'唸り声が消える',text:'電池が動き出し、マンドラゴラの唸り声が消える。',needFlag:'人間電池を装置にセット',setFlag:'マンドラゴラの唸り声が消えた'},
+        'hallucination-leaves':{type:'npc',npc:'npc56',name:'幻聴が聞こえる人が消える',text:'メインマップ6の右の道を塞いでいた幻聴が聞こえる人が、いなくなる。',needFlag:'マンドラゴラの唸り声が消えた',setFlag:'幻聴が聞こえる人が消えた'},
+        'road-opens':{type:'outcome',name:'メインマップ6右の道が開く',text:'塞がれていた右の道が通れるようになる。',needFlag:'幻聴が聞こえる人が消えた',setFlag:'メインマップ6右の道が開いた'},
+        reward:{type:'outcome',name:'無限レタスをもらう',text:'お礼に、食べても無くならない無限レタスをマンドラゴラからもらう。',needFlag:'メインマップ6右の道が開いた',setFlag:'無限レタスを入手'}
+      };
+      Object.entries(replacementNodes).forEach(([id,values])=>{const node=mandragoraFlow.nodes.find(item=>item.id===id);if(node)Object.assign(node,values);else mandragoraFlow.nodes.push({id,...values,x:170,y:40+mandragoraFlow.nodes.length*235})});
+      mandragoraFlow.edges=[
+        {from:'cleaner',to:'locked-factory',label:'唸り声を調べる'},{from:'locked-factory',to:'mandragora',label:'鍵を壊して入る'},
+        {from:'mandragora',to:'battery-needed',label:'状態を調べる'},{from:'battery-needed',to:'alien',label:'宇宙人に聞く'},
+        {from:'alien',to:'find-battery',label:'情報を得る'},{from:'find-battery',to:'old-man',label:'カフェへ行く'},
+        {from:'old-man',to:'install',label:'了承を得る'},{from:'install',to:'silence',label:'電池を入れる'},
+        {from:'silence',to:'hallucination-leaves',label:'唸り声が消える'},{from:'hallucination-leaves',to:'road-opens',label:'道を塞ぐ人が消える'},
+        {from:'road-opens',to:'reward',label:'道を通る'}
+      ];
+    }
+    if(layout.scenarioFlowDirection!=='vertical-v2'){
       layout.scenarioFlows.forEach(item=>item.nodes.forEach((node,index)=>Object.assign(node,{x:170,y:40+index*235})));
-      layout.scenarioFlowDirection='vertical-v1';
+      layout.scenarioFlowDirection='vertical-v2';
     }
     let flow=layout.scenarioFlows[0],selectedId=flow.nodes[0]?.id||'',connectFrom='',zoom=1,panX=0,panY=0,drag=null,pinch=null;
     const persist=()=>localStorage.setItem('nekosagasi-layout-v1',JSON.stringify(layout));
