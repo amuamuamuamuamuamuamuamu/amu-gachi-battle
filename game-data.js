@@ -50,3 +50,4 @@ GAME_DATA.assets.items.unshift('レポート');
 GAME_DATA.assets.items.unshift('人間電池');
 GAME_DATA.assets.npcs.push('掃除おばさん');
 GAME_DATA.assets.npcs.push('生命維持パネル2');
+GAME_DATA.assets.npcs.push('骨の犬','おにぎりマン','全身札束マン','はいはいする赤ちゃん');
