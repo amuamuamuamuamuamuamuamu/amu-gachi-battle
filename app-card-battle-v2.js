@@ -1009,7 +1009,7 @@ async function runnerGame(){
   const updatedNpcSourceNames=gameNpcNames.map(name=>name+'.png');
   const updatedItemLightNames={'宇宙人の角.png':'item01.jpg','名刺.png':'item02.jpg','下痢止め.png':'item03.jpg','骨.png':'item04.jpg','栄養剤.png':'item05.jpg','拳銃.png':'item06.jpg','温泉の素.png':'item07.jpg','３Dプリンター.png':'item08.jpg','お通し.png':'item09.jpg','便器ブラシ.png':'item10.jpg'};
   // 元画像は npc/ に保存したまま、ゲーム内では軽量化済みの npc-light/ だけを読み込む。
-  const npcAssetVersion='20261002-life-support-panel2-installed-1';
+  const npcAssetVersion='20261002-life-support-empty-wide-2';
   const npcAsset=name=>{name=String(name||'');const art=name.match(/^ura(\d{3})_/),custom=name.match(/^custom(\d{3})_/),npcIndex=updatedNpcSourceNames.indexOf(name),path=art?eventArtSrc(art[1]):custom?eventArtSrc(custom[1]):npcIndex>=0?'npc-light/npc'+String(npcIndex+1).padStart(2,'0'):(updatedItemLightNames[name]?'npc-light/'+updatedItemLightNames[name]:gameItemSrc(name));return path+'?v='+npcAssetVersion};
   // 2つ目の答えでは、まだ出ていない言葉NPCをランダムに出現させる。
   const showGameClear=()=>{if(gameClearShown)return;gameClearShown=true;const clear=document.createElement('div');clear.className='game-clear';clear.innerHTML='<strong>ゲームクリア！</strong><small>タップして閉じる</small>';clear.onclick=()=>clear.remove();runnerWrap.append(clear)};
@@ -1198,7 +1198,7 @@ const focusUpdatedNpcArrival=npc=>{if(npc)npc.visible=true};
       const image=document.createElement('img'),npc={...definition,number,image,placedFromLayout:true,mapIndex:Number(placed.map),x:Number(placed.x)/100*WORLD_WIDTH,y:(100-Number(placed.y))/100*mapHeight(),visible:placed.visible!==false};
       if((npc.eventType||'words')==='words'&&!String(npc.firstMessage||'').trim())npc.firstMessage='こんにちは！';
       const profileAsset=configured?.profileAsset||configured?.profileId||number;
-      image.className='character-npc';image.src='npc-light/'+profileAsset+(String(profileAsset).endsWith('.png')?'':'.png')+'?v=20261002-life-support-panel2-installed-1';image.alt=definition.name;
+      image.className='character-npc';image.src='npc-light/'+profileAsset+(String(profileAsset).endsWith('.png')?'':'.png')+'?v=20261002-life-support-empty-wide-2';image.alt=definition.name;
       image.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();if(npc.eventType==='normal'){startNormalNpcEvent(npc);return}if(npc.eventType==='quiz'||npc.eventType==='survey'||npc.eventType==='ultimate'){sanitizeQuizNpc(npc);startQuizNpcEvent(npc);return}if(talkOrbCount>0)openWordNpcIntro(npc);else{const message=document.createElement('div');message.className='character-npc-bubble';message.textContent='話せる実がないよ';characterNpcWrap.append(message);setTimeout(()=>message.remove(),1200)}});
       characterNpcWrap.append(image);characterNpcs.push(npc);
     });
