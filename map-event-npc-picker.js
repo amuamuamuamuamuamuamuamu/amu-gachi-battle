@@ -6,7 +6,7 @@
   const select=document.querySelector('#npcPicker'),visual=document.querySelector('.npc-picker-visual');
   if(!select||!visual||select.dataset.eventNpcPicker)return;
   let data;try{data=JSON.parse(localStorage.getItem(key)||'{}')}catch{return}
-  const allowedTypes=new Set(['words','item','ultimate','survey','quiz','cardbattle']);
+  const allowedTypes=new Set(['words','normal','item','ultimate','survey','quiz','cardbattle']);
   const entries=Object.entries(data.npcDefinitions||{}).filter(([id,n])=>id.startsWith('event-')&&allowedTypes.has(n?.eventType||'words')&&n?.eventNpcName&&n?.profileId).map(([id,n])=>[id,{...n,eventNpcName:n.eventType==='cardbattle'?String(n.eventNpcName).replace(/^カードバトル/,'カード'):n.eventNpcName}]);
   if(!entries.length)return;
   window.__eventNpcProfiles=Object.fromEntries(entries.map(([id,n])=>[id,{profileId:n.profileId,name:n.eventNpcName}]));
