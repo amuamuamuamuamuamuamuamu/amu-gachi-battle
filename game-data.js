@@ -45,3 +45,5 @@ window.GAME_DATA=GAME_DATA;
   box.remove();
  },true);
 })();
+
+GAME_DATA.assets.items.unshift('レポート');
