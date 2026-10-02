@@ -20,7 +20,7 @@ const defs={
     {scenarioId,scenarioNodeId:'road-opens',...talk('助けてくれてありがとう。これはぼくからのお礼。','食べてもなくならない、無限レタスだよ。','reward',{item:'無限レタス.png'})}
   ]),
   'event-scenario-alien':normal('ゲームセンターの宇宙人','npc01',talk('ピコピコ……。あの水耕栽培の装置？　人間電池が必要なやつだよ。','カフェの前にいる、椅子に座ったおじいさんに相談してみて。','alien',{npc:'event-scenario-grandfather',npcMode:'show'})),
-  'event-scenario-grandfather':normal('椅子に座るおじいさん','npc27',talk('人間電池？　困っているマンドラゴラがいるのかい。','わしでよければ、力になろう。装置まで案内しておくれ。','old-man'),[],{profileAsset:'seated-grandfather'}),
+  'event-scenario-grandfather':normal('椅子に座るおじいさん','npc27',talk('人間電池？　困っているマンドラゴラがいるのかい。','わしでよければ、力になろう。これでわしは人間電池だ。装置まで案内しておくれ。','old-man',{item:'人間電池.png'}),[],{profileAsset:'seated-grandfather'}),
   'event-scenario-life-support-panel':normal('生命維持パネル','npc57',talk('生命維持パネル：植物育成のための電力が不足しています。','大型電池が抜けています。詳しい者を探すなら、宇宙人に聞くのが早そうです。','alien-ready',{npc:'event-scenario-alien',npcMode:'show'})),
   'event-scenario-hallucination':normal('幻聴が聞こえる人','npc56',talk('うるさい……。工場のほうから、ずっと声が聞こえるんだ。','怖くて、ここから動けない。','',{}))
 };
