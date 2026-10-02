@@ -19,7 +19,7 @@ const quizTriviaDefaults=()=>{const f=[
 const gameAssetCatalog=GAME_DATA.assets||{},gameMapNames=gameAssetCatalog.maps||[],gameNpcNames=gameAssetCatalog.npcs||[],gameItemNames=gameAssetCatalog.items||[];
 // シナリオの到達状態はゲームを遊んでいる端末ごとに保持する。ツールとゲームで同じキーを使う。
 const scenarioFlowFlagsKey='amu-runner-scenario-flow-flags-v1',scenarioFlowFlagKey=(scenarioId,nodeId)=>String(scenarioId||'')+'::'+String(nodeId||''),readScenarioFlowFlags=()=>{try{return JSON.parse(localStorage.getItem(scenarioFlowFlagsKey)||'{}')}catch{return{}}},setScenarioFlowFlag=(scenarioId,nodeId)=>{if(!scenarioId||!nodeId)return;const flags=readScenarioFlowFlags();flags[scenarioFlowFlagKey(scenarioId,nodeId)]=true;localStorage.setItem(scenarioFlowFlagsKey,JSON.stringify(flags));window.dispatchEvent(new CustomEvent('scenario-flow-flag-set',{detail:{scenarioId,nodeId}}))};
-const gameItemSrc=name=>{const file=String(name).replace(/\.png$/i,'');return 'game-assets/items/'+encodeURIComponent(file)+'.webp?v=20261002-human-battery-grandfather-2'};
+const gameItemSrc=name=>{const file=String(name).replace(/\.png$/i,'');return 'game-assets/items/'+encodeURIComponent(file)+'.webp?v=20261002-human-battery-no-chair-3'};
 const MONSTER_JOURNAL_ITEM='バケモノの手記.png';
 const REPORT_ITEM='レポート.png';
 const monsterJournalPages=[
