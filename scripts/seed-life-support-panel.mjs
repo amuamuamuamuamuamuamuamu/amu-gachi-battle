@@ -22,6 +22,25 @@ layout.npcDefinitions.npc57={
     conditions:[]
   }
 };
+layout.npcDefinitions.npc59={
+  ...(layout.npcDefinitions.npc59||{}),
+  eventType:'normal',
+  eventNpcName:'生命維持パネル2',
+  profileId:'npc59',
+  firstMessage:'',
+  normalTalk:{
+    initial:{
+      message:'生命維持パネル2です。人間電池を接続し、生命維持装置を稼働させています。',
+      afterMessage:'電力供給は安定しています。',
+      rewardOnce:false,
+      repeatMessage:'電力供給は安定しています。',
+      outcome:{item:'',card:'',building:'',buildingMode:'show',npc:'',npcMode:'show'},
+      setScenarioId:'',
+      setScenarioNodeId:''
+    },
+    conditions:[]
+  }
+};
 const save=await fetch(endpoint,{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(layout)});
 if(!save.ok)throw new Error('layout save failed: '+save.status);
 console.log('生命維持パネルをNPCツールに登録しました');
