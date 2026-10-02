@@ -11,7 +11,7 @@ const talk=(message,afterMessage,setScenarioNodeId,out={})=>({message,afterMessa
 const normal=(eventNpcName,profileId,initial,conditions=[])=>({eventType:'normal',eventNpcName,profileId,firstMessage:'',afterEventAction:'cooldown',cooldownCondition:'npc-events-2',cooldownMessage:'いまは話を整理しているところだよ。',normalTalk:{initial,conditions}});
 
 const defs={
-  'event-scenario-cleaner':{...normal('掃除おばさん','npc58',talk('あら、聞こえる？　水耕栽培工場の中から、まいばん低いうなり声がするのよ。','気になるなら、工場の中にいるマンドラゴラに話しかけてみてちょうだい。','mandragora')),displayScale:.5},
+  'event-scenario-cleaner':{...normal('掃除おばさん','npc58',talk('あら、聞こえる？　水耕栽培工場の中から、まいばん低いうなり声がするのよ。','気になるなら、工場の中にいるマンドラゴラに話しかけてみてちょうだい。','cleaner')),displayScale:.5},
   'event-scenario-mandragora':normal('マンドラゴラ','npc30',talk('う゛う゛う゛……。電気が足りない……。','となりの生命維持パネルを見て。予備電源があるはずなんだ。','life-support-panel',{npc:'event-scenario-life-support-panel',npcMode:'show'}),[
     {scenarioId,scenarioNodeId:'install',...talk('……カチッ。人間電池が、装置に入った。','う゛う゛……という声が、少しずつ消えていく。','silence')},
     {scenarioId,scenarioNodeId:'silence',...talk('電池の力で、ぼくは元気になったよ。','右の道をふさいでいた、あの人も静かになったみたい。','hallucination-leaves',{npc:'event-scenario-hallucination',npcMode:'hide'})},
@@ -26,6 +26,7 @@ const defs={
   'event-scenario-hallucination':normal('幻聴が聞こえる人','npc56',talk('うるさい……。工場のほうから、ずっと声が聞こえるんだ。','怖くて、ここから動けない。','',{}))
 };
 Object.assign(defs['event-scenario-life-support-panel'].normalTalk.initial,{requiresScenarioId:scenarioId,requiresScenarioNodeId:'life-support-panel',lockedMessage:'先にマンドラゴラの話を聞いてください。'});
+Object.assign(defs['event-scenario-mandragora'].normalTalk.initial,{requiresScenarioId:scenarioId,requiresScenarioNodeId:'cleaner',lockedMessage:'先に水耕栽培工場の前にいる掃除おばさんに話を聞いてください。'});
 for(const [id,definition] of Object.entries(defs))layout.npcDefinitions[id]={...(layout.npcDefinitions[id]||{}),...definition};
 
 const flow=(layout.scenarioFlows||[]).find(item=>item.id===scenarioId);
@@ -67,7 +68,7 @@ const placements=[
 for(const [id,npc,map,x,y,visible] of placements){const found=layout.objects.find(item=>item.id===id);Object.assign(found||layout.objects[layout.objects.push({id})-1],{id,kind:'npc',npc,map,x,y,visible})}
 
 const reportId='scenario-mandragora-report',report=layout.objects.find(item=>item.id===reportId);
-Object.assign(report||layout.objects[layout.objects.push({id:reportId})-1],{id:reportId,kind:'item',item:'レポート.png',map:23,x:61,y:70,visible:true,setScenarioId:scenarioId,setScenarioNodeId:'battery-needed',outcome:{npc:'event-scenario-alien',npcMode:'show'}});
+Object.assign(report||layout.objects[layout.objects.push({id:reportId})-1],{id:reportId,kind:'item',item:'レポート.png',map:23,x:38,y:61,visible:true,setScenarioId:scenarioId,setScenarioNodeId:'battery-needed',outcome:{npc:'event-scenario-alien',npcMode:'show'}});
 
 const hydroponicsExit=layout.objects.find(item=>item.id==='hydroponics-inside');
 if(hydroponicsExit)Object.assign(hydroponicsExit,{map:23,link:19,x:50,y:92,sizeStage:4});

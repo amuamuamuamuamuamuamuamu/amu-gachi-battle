@@ -235,7 +235,7 @@ async function runnerGame(){
   // ページを読み込み直したら、言葉NPC・所持アイテム・通せん坊を新しいゲームとして初期化する。
   ['amu-runner-npc-inventory-v1','amu-runner-passage-guards-v1'].forEach(key=>localStorage.removeItem(key));
   // シナリオの構成を更新した時は、旧会話の「実行済み」だけを一度消して新しい流れから遊べるようにする。
-  const scenarioProgressVersionKey='amu-runner-scenario-progress-version-v1',scenarioProgressVersion='life-support-panel-v2';if(localStorage.getItem(scenarioProgressVersionKey)!==scenarioProgressVersion){localStorage.removeItem(scenarioFlowFlagsKey);for(let index=localStorage.length-1;index>=0;index--){const key=localStorage.key(index);if(key?.startsWith('amu-runner-normal-talk-event-scenario-'))localStorage.removeItem(key)}localStorage.setItem(scenarioProgressVersionKey,scenarioProgressVersion)}
+  const scenarioProgressVersionKey='amu-runner-scenario-progress-version-v1',scenarioProgressVersion='cleaner-report-v1';if(localStorage.getItem(scenarioProgressVersionKey)!==scenarioProgressVersion){localStorage.removeItem(scenarioFlowFlagsKey);localStorage.removeItem('amu-runner-item-scenario-mandragora-report');for(let index=localStorage.length-1;index>=0;index--){const key=localStorage.key(index);if(key?.startsWith('amu-runner-normal-talk-event-scenario-'))localStorage.removeItem(key)}localStorage.setItem(scenarioProgressVersionKey,scenarioProgressVersion)}
   document.body.classList.add('runner-page');
   document.querySelector('meta[name="viewport"]')?.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no');
   document.documentElement.style.zoom='1';
