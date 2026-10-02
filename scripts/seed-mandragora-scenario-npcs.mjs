@@ -11,7 +11,7 @@ const talk=(message,afterMessage,setScenarioNodeId,out={})=>({message,afterMessa
 const normal=(eventNpcName,profileId,initial,conditions=[])=>({eventType:'normal',eventNpcName,profileId,firstMessage:'',afterEventAction:'cooldown',cooldownCondition:'npc-events-2',cooldownMessage:'いまは話を整理しているところだよ。',normalTalk:{initial,conditions}});
 
 const defs={
-  'event-scenario-cleaner':normal('掃除するおばさん','npc32',talk('あら、聞こえる？　水耕栽培工場の中から、まいばん低いうなり声がするのよ。','気になるなら、工場の中にいるマンドラゴラに話しかけてみてちょうだい。','mandragora')),
+  'event-scenario-cleaner':{...normal('掃除おばさん','npc58',talk('あら、聞こえる？　水耕栽培工場の中から、まいばん低いうなり声がするのよ。','気になるなら、工場の中にいるマンドラゴラに話しかけてみてちょうだい。','mandragora')),displayScale:.5},
   'event-scenario-mandragora':normal('マンドラゴラ','npc30',talk('う゛う゛う゛……。電気が足りない……。','となりの生命維持パネルを見て。予備電源があるはずなんだ。','life-support-panel',{npc:'event-scenario-life-support-panel',npcMode:'show'}),[
     {scenarioId,scenarioNodeId:'install',...talk('……カチッ。人間電池が、装置に入った。','う゛う゛……という声が、少しずつ消えていく。','silence')},
     {scenarioId,scenarioNodeId:'silence',...talk('電池の力で、ぼくは元気になったよ。','右の道をふさいでいた、あの人も静かになったみたい。','hallucination-leaves',{npc:'event-scenario-hallucination',npcMode:'hide'})},

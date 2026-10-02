@@ -47,3 +47,4 @@ window.GAME_DATA=GAME_DATA;
 })();
 
 GAME_DATA.assets.items.unshift('レポート');
+GAME_DATA.assets.npcs.push('掃除おばさん');
