@@ -1,0 +1,110 @@
+ねこさがし 安定版マップ接続・配置情報
+書き出し日: 20261003
+取得元: https://nekosagasi.pages.dev/api/layout
+完全復元データ: 復元用/安定版レイアウト_20261003.json
+
+【復元の基準】
+このテキストは確認用。復元は同じフォルダのJSONを scripts/restore-stable-layout-20261003.js で送信する。
+復元前の公開状態も 復元用/復元前レイアウト_YYYYMMDD-HHMMSS.json としてローカルへ退避される。
+
+【出入口】 61件
+リンク 1: main1-right / マップ1 (98, 50) size=3  <->  main2-left / マップ2 (2, 50) size=3
+リンク 2: main2-right / マップ2 (98, 50) size=3  <->  main3-left / マップ3 (0, 66.23) size=3
+リンク 3: main4-right / マップ4 (100, 58.33) size=3  <->  main5-left / マップ5 (2, 50) size=3
+リンク 4: main5-right / マップ5 (98, 50) size=3  <->  main6-left / マップ6 (1.43, 50.66) size=3
+リンク 5: main7-right / マップ7 (98, 50) size=3  <->  main8-left / マップ8 (2, 50) size=3
+リンク 6: main8-right / マップ8 (98, 50) size=3  <->  main9-left / マップ9 (2, 50) size=3
+リンク 7: main1-bottom / マップ1 (26.52, 100) size=4  <->  main4-top / マップ4 (28.51, 0) size=4
+リンク 8: main2-bottom / マップ2 (51.75, 99.78) size=4  <->  main5-top / マップ5 (65.68, 0) size=4
+リンク 9: main3-bottom / マップ3 (50, 98) size=4  <->  main6-top / マップ6 (50, 2) size=4
+リンク 10: main4-bottom / マップ4 (28.73, 100) size=4  <->  main7-top / マップ7 (30.04, 0) size=4
+リンク 12: main6-bottom / マップ6 (50, 98) size=4  <->  main9-top / マップ9 (40.79, 0) size=4
+リンク 13: cafe-outside / マップ1 (34.95, 41.76) size=1  <->  cafe-inside / マップ10 (48.92, 92.83) size=1
+リンク 14: game-center-outside / マップ2 (34, 84) size=1  <->  game-center-inside / マップ11 (50.36, 95.34) size=1
+リンク 15: apartment-outside / マップ3 (31.69, 41.78) size=1  <->  apartment-inside / マップ26 (47.49, 79.57) size=4
+リンク 16: lab-outside / マップ3 (60, 38) size=1  <->  lab-inside / マップ15 (50, 92.65) size=1
+リンク 17: company-outside / マップ4 (65, 37) size=1  <->  company-inside / マップ18 (51.08, 90.5) size=1
+リンク 19: hydroponics-outside / マップ6 (35.2, 34.43) size=1  <->  hydroponics-inside / マップ24 (50, 92) size=4
+リンク 20: gallery-outside / マップ6 (70.18, 37.72) size=1  <->  gallery-inside / マップ20 (50.36, 92.29) size=1
+リンク 21: school-outside / マップ7 (70.39, 30.37) size=1  <->  school-inside / マップ19 (48.92, 93.73) size=1
+リンク 22: zoo-outside / マップ7 (38.49, 75.11) size=1  <->  zoo-inside / マップ22 (46.42, 69) size=1
+リンク 23: toilet-outside / マップ8 (85.53, 28.95) size=1  <->  toilet-inside / マップ21 (44.09, 71.33) size=1
+リンク 24: hot-spring-outside / マップ9 (70, 37) size=1  <->  hot-spring-inside / マップ16 (49.46, 91.58) size=1
+リンク 27: plant3-main / マップ3 (100, 57.02) size=3  <->  plant3-field / マップ28 (0, 47.91) size=1
+リンク 28: plant4-main / マップ4 (0, 57.79) size=3  <->  plant4-field / マップ29 (98, 50) size=1
+リンク 29: plant6-main / マップ6 (99.89, 63.82) size=3  <->  plant6-field / マップ30 (1.64, 49.23) size=1
+リンク 30: plant-plaza-m8-bottom-entry / マップ32 (50, 2) size=3  <->  plant8-field / マップ31 (50, 2) size=1  <->  7ca1ed05-4844-4f40-a795-3b3a17be5cbd / マップ8 (73.66, 100) size=4
+リンク 31: plant9-main / マップ9 (51.21, 100) size=4  <->  plant9-field / マップ32 (50, 2) size=1
+リンク 33: dark-ritual-inside / マップ33 (50, 90.92) size=1  <->  178835fb-d226-42e4-a780-cbecee3ab43d / マップ9 (34.77, 74.49) size=1
+リンク 34: hamburger-shop-inside / マップ34 (50, 90) size=1  <->  07136e2a-60f9-4d8f-ad7d-2f041b5f29bb / マップ2 (40.13, 35.42) size=1
+リンク 35: claw-living-outside / マップ5 (38.6, 33.22) size=1  <->  claw-living-inside / マップ27 (50.18, 78.32) size=1
+
+【NPC配置】 12件
+a968d8f8-5314-4aae-846e-f1d4042534a9 / event-0af33f1b-cba1-440e-84b7-9ac26c945e16 / クイズクイズマン / quiz / マップ5 (88.6, 18.97) size=0
+dba181d8-0227-4aa6-bc7a-3bc02119e9b9 / event-9fc012f2-32b2-4891-b9d1-b538b0d5c5c4 / 渡すサウナおじさん / item / マップ5 (41.23, 76.32) size=0
+7bb28968-04ea-4e6b-8644-b04111e569e5 / event-dfdd1ecc-1a5b-41ed-879b-1fc05f530bb0 / ２択怪しいやつ / ultimate / マップ5 (59.76, 65.68) size=0
+203a049b-2804-4fe7-87e6-d2c3460f4044 / event-ea553f0e-6b54-4e2f-9973-e15ee85a066b / 多数派中割れくん / survey / マップ5 (72.59, 19.08) size=0
+6468edee-c78e-4bbb-b783-c3e96fda160b / event-3f5bb629-8765-4294-9c92-88f21e4a4c5e / カード悪人 / cardbattle / マップ5 (74.89, 61.07) size=0
+48c50dac-0c65-4be9-a868-a2293278b7a8 / event-07cad61a-c126-412a-83a3-217cbd4ab7a2 / 言葉犬 / words / マップ5 (21.6, 63.05) size=0
+scenario-cleaner / event-scenario-cleaner / 掃除おばさん / normal / マップ6 (27, 46) size=0
+scenario-mandragora / event-scenario-mandragora / マンドラゴラ / normal / マップ24 (48.9, 34.54) size=0
+scenario-alien / event-scenario-alien / ゲームセンターの宇宙人 / normal / マップ11 (53, 66) size=0
+scenario-grandfather / event-scenario-grandfather / 椅子に座るおじいさん / normal / マップ1 (30, 55) size=0
+scenario-hallucination / event-scenario-hallucination / 幻聴が聞こえる人 / normal / マップ6 (88, 63) size=0
+scenario-life-support-panel / event-scenario-life-support-panel / 生命維持パネル / normal / マップ24 (57.79, 51.32) size=0
+
+【アイテム配置】 11件
+monster-journal-1 / バケモノの手記.png / マップ1 (18, 72) size=0
+monster-journal-2 / バケモノの手記.png / マップ2 (77, 29) size=0
+monster-journal-3 / バケモノの手記.png / マップ3 (24.12, 57.89) size=0
+monster-journal-4 / バケモノの手記.png / マップ4 (30, 34) size=0
+monster-journal-5 / バケモノの手記.png / マップ5 (70, 70) size=0
+monster-journal-6 / バケモノの手記.png / マップ6 (26, 33) size=0
+monster-journal-7 / バケモノの手記.png / マップ7 (75, 70) size=0
+monster-journal-8 / バケモノの手記.png / マップ8 (32, 68) size=0
+monster-journal-9 / バケモノの手記.png / マップ10 (67, 33) size=0
+monster-journal-10 / バケモノの手記.png / マップ29 (55, 50) size=0
+scenario-mandragora-report / レポート.png / マップ24 (37.94, 70.39) size=0
+
+【その他の配置】 1件
+player-start-claw-living / マップ27 (50, 50) size=0
+
+【建築配置】 0件
+
+【NPC定義】 33件
+event-494dbdb0-8836-46f5-927a-c1582acd2331 / 言葉うんこマン / words / profile=npc03
+event-c15f9383-917e-4312-8a99-37744773d805 / 言葉カピパラ / words / profile=npc07
+event-e70d297e-4617-4361-9d90-a00100c9f5bd / 言葉やくざ / words / profile=npc06
+event-restored-npc52 / 言葉サウナおじさん（純金像） / words / profile=npc52
+event-0af33f1b-cba1-440e-84b7-9ac26c945e16 / クイズクイズマン / quiz / profile=npc24
+event-b757593d-07e2-4607-9d6b-dd6562b579a1 / 言葉植物 / words / profile=npc05
+event-220f84e1-7da9-4d51-aea0-195be2500575 / 言葉札束くん / words / profile=npc18
+event-16ce498f-dca1-4729-95ae-5c53fc650f00 / 言葉ピザくん / words / profile=npc15
+event-9fc012f2-32b2-4891-b9d1-b538b0d5c5c4 / 渡すサウナおじさん / item / profile=npc13
+event-07cad61a-c126-412a-83a3-217cbd4ab7a2 / 言葉犬 / words / profile=npc04
+event-3f0e7098-e70a-494d-a7f7-9998088d2dd7 / 言葉銅像くん / words / profile=npc08
+event-a1d22cba-45c1-4f4c-bafa-671f862ccf0d / クイズそううつくん / quiz / profile=npc22
+event-restored-npc51 / 言葉サウナおじさん（ブロンズ像） / words / profile=npc51
+event-dfdd1ecc-1a5b-41ed-879b-1fc05f530bb0 / ２択怪しいやつ / ultimate / profile=npc21
+event-2b499819-0053-43d5-bb30-aa802b228a4f / 言葉枝豆くん / words / profile=npc09
+event-5e16a003-609f-4bab-840d-c6e312e2eef4 / 言葉宇宙人 / words / profile=npc01
+event-7340174a-c311-4eaf-be99-90fd397eee4f / 言葉おじさん / words / profile=npc02
+event-c8e7404a-37b6-44b7-b07e-15015be0960e / 言葉便器くん / words / profile=npc10
+event-restored-npc16 / 渡すマッチョおじさん / item / profile=npc16
+event-ea553f0e-6b54-4e2f-9973-e15ee85a066b / 多数派中割れくん / survey / profile=npc23
+event-3f5bb629-8765-4294-9c92-88f21e4a4c5e / カード悪人 / cardbattle / profile=npc20
+event-scenario-cleaner / 掃除おばさん / normal / profile=npc58
+event-scenario-mandragora / マンドラゴラ / normal / profile=npc30
+event-scenario-alien / ゲームセンターの宇宙人 / normal / profile=npc01
+event-scenario-grandfather / 椅子に座るおじいさん / normal / profile=npc27
+event-scenario-hallucination / 幻聴が聞こえる人 / normal / profile=npc56
+npc57 / 生命維持パネル / normal / profile=npc57
+event-scenario-life-support-panel / 生命維持パネル / normal / profile=npc57
+npc59 / 生命維持パネル2 / normal / profile=npc59
+npc60 / 骨の犬 / normal / profile=npc60
+npc61 / おにぎりマン / normal / profile=npc61
+npc62 / 全身札束マン / normal / profile=npc62
+npc63 / はいはいする赤ちゃん / normal / profile=npc63
+
+collision: {}
+mapIndexSchema: main-map-9-normalized-connections
