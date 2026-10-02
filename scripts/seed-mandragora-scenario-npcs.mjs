@@ -25,6 +25,7 @@ const defs={
   'event-scenario-life-support-panel':normal('生命維持パネル','npc57',talk('生命維持パネル：植物育成のための電力が不足しています。','大型電池が抜けています。予備電源として使える、大きな電池が必要です。','battery-needed',{npc:'event-scenario-alien',npcMode:'show'})),
   'event-scenario-hallucination':normal('幻聴が聞こえる人','npc56',talk('うるさい……。工場のほうから、ずっと声が聞こえるんだ。','怖くて、ここから動けない。','',{}))
 };
+Object.assign(defs['event-scenario-life-support-panel'].normalTalk.initial,{requiresScenarioId:scenarioId,requiresScenarioNodeId:'life-support-panel',lockedMessage:'先にマンドラゴラの話を聞いてください。'});
 for(const [id,definition] of Object.entries(defs))layout.npcDefinitions[id]={...(layout.npcDefinitions[id]||{}),...definition};
 
 const flow=(layout.scenarioFlows||[]).find(item=>item.id===scenarioId);
@@ -58,7 +59,7 @@ if(flow){
 const placements=[
   ['scenario-cleaner','event-scenario-cleaner',5,27,46,true],
   ['scenario-mandragora','event-scenario-mandragora',23,50,61,true],
-  ['scenario-life-support-panel','event-scenario-life-support-panel',23,72,61,false],
+  ['scenario-life-support-panel','event-scenario-life-support-panel',23,72,61,true],
   ['scenario-alien','event-scenario-alien',10,53,66,false],
   ['scenario-grandfather','event-scenario-grandfather',0,30,55,false],
   ['scenario-hallucination','event-scenario-hallucination',5,88,63,true]
