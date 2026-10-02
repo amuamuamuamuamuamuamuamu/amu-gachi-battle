@@ -67,7 +67,7 @@ const placements=[
 for(const [id,npc,map,x,y,visible] of placements){const found=layout.objects.find(item=>item.id===id);Object.assign(found||layout.objects[layout.objects.push({id})-1],{id,kind:'npc',npc,map,x,y,visible})}
 
 const reportId='scenario-mandragora-report',report=layout.objects.find(item=>item.id===reportId);
-Object.assign(report||layout.objects[layout.objects.push({id:reportId})-1],{id:reportId,kind:'item',item:'レポート.png',map:23,x:61,y:70,visible:true});
+Object.assign(report||layout.objects[layout.objects.push({id:reportId})-1],{id:reportId,kind:'item',item:'レポート.png',map:23,x:61,y:70,visible:true,setScenarioId:scenarioId,setScenarioNodeId:'battery-needed',outcome:{npc:'event-scenario-alien',npcMode:'show'}});
 
 const hydroponicsExit=layout.objects.find(item=>item.id==='hydroponics-inside');
 if(hydroponicsExit)Object.assign(hydroponicsExit,{map:23,link:19,x:50,y:92,sizeStage:4});

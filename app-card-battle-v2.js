@@ -891,7 +891,8 @@ async function runnerGame(){
   const placedTalkOrbs=placedObjects.filter(item=>item.kind==='talk-orb').map(item=>({...item,collected:false}));
   const placedItems=placedObjects.filter(item=>item.kind==='item').map(item=>({...item,collected:localStorage.getItem('amu-runner-item-'+item.id)==='1'}));
   const itemImages=new Map();placedItems.forEach(item=>{const image=new Image();image.src=gameItemSrc(item.item);itemImages.set(item.id,image)});
-  const collectPlacedItem=item=>{if(!item||item.collected)return false;item.collected=true;localStorage.setItem('amu-runner-item-'+item.id,'1');if(isReadableItem(item)){showReadableItem(item);return true}npcInventory.push(item.item);saveInventory();getNpcItem(item.item);return true};
+  const applyPlacedItemProgress=item=>{if(item.setScenarioId&&item.setScenarioNodeId)setScenarioFlowFlag(item.setScenarioId,item.setScenarioNodeId);if(item.outcome)window.dispatchEvent(new CustomEvent('npc-configured-outcome',{detail:item.outcome}))};
+  const collectPlacedItem=item=>{if(!item||item.collected)return false;item.collected=true;localStorage.setItem('amu-runner-item-'+item.id,'1');applyPlacedItemProgress(item);if(isReadableItem(item)){showReadableItem(item);return true}npcInventory.push(item.item);saveInventory();getNpcItem(item.item);return true};
   const talkOrbImage=new Image();talkOrbImage.src='アイテム/話せる実.png';
   const drawPlacedItems=(h,z,cameraY)=>{placedItems.filter(item=>item.map===mapIndex&&!item.collected).forEach(item=>{const image=itemImages.get(item.id),wx=item.x/100*WORLD_WIDTH,wy=(100-item.y)/100*mapHeight(),size=120*z;if(image?.naturalWidth)ctx.drawImage(image,(wx-scroll)*z-size/2,h-(wy-cameraY)*z-size/2,size,size)})};
   // しゃべり玉は直接タップでも、プレイヤーが触れた時でも同じ取得処理を通す。
