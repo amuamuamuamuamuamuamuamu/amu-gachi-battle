@@ -455,7 +455,8 @@ async function runnerGame(){
     const mandragora={id:'test-mandragora-voice',title:'マンドラゴラの声',nodes:[
       {id:'cleaner',type:'npc',npc:'cleaning-lady',name:'掃除するおばさん',text:'メインマップ6の水耕栽培工場の前で、まいばん唸り声がすると話す。',x:70,y:310,setFlag:'工場の唸り声を聞いた'},
       {id:'mandragora',type:'npc',npc:'npc30',name:'マンドラゴラ',text:'工場の中でマンドラゴラが唸っている。',x:405,y:310,needFlag:'工場の唸り声を聞いた',setFlag:'マンドラゴラを発見'},
-      {id:'battery-needed',type:'outcome',name:'電池が必要',text:'電池がなく、このままではマンドラゴラが死んでしまう。',x:1075,y:120,needFlag:'マンドラゴラを発見',setFlag:'電池が必要'},
+      {id:'life-support-panel',type:'npc',npc:'npc57',name:'生命維持パネル',text:'植物育成の生命維持パネルを調べる。大型電池が抜けており、予備電源が必要だと分かる。',x:740,y:310,needFlag:'マンドラゴラを発見',setFlag:'生命維持パネルを確認'},
+      {id:'battery-needed',type:'outcome',name:'予備電源が必要',text:'生命維持パネルを動かすには、大きな電池が必要だ。',x:1075,y:120,needFlag:'生命維持パネルを確認',setFlag:'電池が必要'},
       {id:'alien',type:'npc',npc:'npc01',name:'ゲームセンターの宇宙人',text:'ゲームセンターで遊んでいる宇宙人が、あの装置には人間電池が必要だと教えてくれる。',x:1075,y:420,needFlag:'電池が必要',setFlag:'人間電池が必要'},
       {id:'find-battery',type:'choice',name:'人間電池を探す',text:'人間電池になってくれる人を探すことにする。',x:1410,y:420,needFlag:'人間電池が必要'},
       {id:'old-man',type:'npc',npc:'seated-grandfather',name:'椅子に座るおじいさん',text:'カフェの前に座るおじいさんが、快く人間電池になることを了承してくれる。',x:1745,y:420,setFlag:'人間電池を入手'},
@@ -466,7 +467,8 @@ async function runnerGame(){
       {id:'reward',type:'outcome',name:'無限レタスをもらう',text:'お礼に、食べても無くならない無限レタスをマンドラゴラからもらう。',x:3420,y:250,needFlag:'メインマップ6右の道が開いた',setFlag:'無限レタスを入手'}
     ],edges:[
       {from:'cleaner',to:'mandragora',label:'マンドラゴラに話しかける'},
-      {from:'mandragora',to:'battery-needed',label:'状態を調べる'},
+      {from:'mandragora',to:'life-support-panel',label:'生命維持パネルを見る'},
+      {from:'life-support-panel',to:'battery-needed',label:'予備電源を確認する'},
       {from:'battery-needed',to:'alien',label:'宇宙人に聞く'},
       {from:'alien',to:'find-battery',label:'情報を得る'},
       {from:'find-battery',to:'old-man',label:'カフェへ行く'},
@@ -487,6 +489,8 @@ async function runnerGame(){
       const mandragoraNode=mandragoraFlow.nodes.find(node=>node.id==='mandragora');
       if(mandragoraNode)Object.assign(mandragoraNode,{needFlag:'工場の唸り声を聞いた'});
       const replacementNodes={
+        'life-support-panel':{type:'npc',npc:'npc57',name:'生命維持パネル',text:'植物育成の生命維持パネルを調べる。大型電池が抜けており、予備電源が必要だと分かる。',needFlag:'マンドラゴラを発見',setFlag:'生命維持パネルを確認'},
+        'battery-needed':{type:'outcome',name:'予備電源が必要',text:'生命維持パネルを動かすには、大きな電池が必要だ。',needFlag:'生命維持パネルを確認',setFlag:'電池が必要'},
         install:{type:'outcome',name:'人間電池をはめる',text:'マンドラゴラの装置に人間電池をはめる。',needFlag:'人間電池を入手',setFlag:'人間電池を装置にセット'},
         silence:{type:'outcome',name:'唸り声が消える',text:'電池が動き出し、マンドラゴラの唸り声が消える。',needFlag:'人間電池を装置にセット',setFlag:'マンドラゴラの唸り声が消えた'},
         'hallucination-leaves':{type:'npc',npc:'npc56',name:'幻聴が聞こえる人が消える',text:'メインマップ6の右の道を塞いでいた幻聴が聞こえる人が、いなくなる。',needFlag:'マンドラゴラの唸り声が消えた',setFlag:'幻聴が聞こえる人が消えた'},
@@ -498,7 +502,8 @@ async function runnerGame(){
       Object.entries(replacementNodes).forEach(([id,values])=>{const node=mandragoraFlow.nodes.find(item=>item.id===id);if(node)Object.assign(node,values);else mandragoraFlow.nodes.push({id,...values,x:170,y:40+mandragoraFlow.nodes.length*235})});
       mandragoraFlow.edges=[
         {from:'cleaner',to:'mandragora',label:'マンドラゴラに話しかける'},
-        {from:'mandragora',to:'battery-needed',label:'状態を調べる'},{from:'battery-needed',to:'alien',label:'宇宙人に聞く'},
+        {from:'mandragora',to:'life-support-panel',label:'生命維持パネルを見る'},{from:'life-support-panel',to:'battery-needed',label:'予備電源を確認する'},
+        {from:'battery-needed',to:'alien',label:'宇宙人に聞く'},
         {from:'alien',to:'find-battery',label:'情報を得る'},{from:'find-battery',to:'old-man',label:'カフェへ行く'},
         {from:'old-man',to:'install',label:'了承を得る'},{from:'install',to:'silence',label:'電池を入れる'},
         {from:'silence',to:'hallucination-leaves',label:'唸り声が消える'},{from:'hallucination-leaves',to:'road-opens',label:'道を塞ぐ人が消える'},

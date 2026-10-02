@@ -12,7 +12,7 @@ const normal=(eventNpcName,profileId,initial,conditions=[])=>({eventType:'normal
 
 const defs={
   'event-scenario-cleaner':normal('掃除するおばさん','npc32',talk('あら、聞こえる？　水耕栽培工場の中から、まいばん低いうなり声がするのよ。','気になるなら、工場の中にいるマンドラゴラに話しかけてみてちょうだい。','mandragora')),
-  'event-scenario-mandragora':normal('マンドラゴラ','npc30',talk('う゛う゛う゛……。電気が足りない……。','このままでは、ぼくはしおれてしまう……。','battery-needed',{npc:'event-scenario-alien',npcMode:'show'}),[
+  'event-scenario-mandragora':normal('マンドラゴラ','npc30',talk('う゛う゛う゛……。電気が足りない……。','となりの生命維持パネルを見て。予備電源があるはずなんだ。','life-support-panel',{npc:'event-scenario-life-support-panel',npcMode:'show'}),[
     {scenarioId,scenarioNodeId:'install',...talk('……カチッ。人間電池が、装置に入った。','う゛う゛……という声が、少しずつ消えていく。','silence')},
     {scenarioId,scenarioNodeId:'silence',...talk('電池の力で、ぼくは元気になったよ。','右の道をふさいでいた、あの人も静かになったみたい。','hallucination-leaves',{npc:'event-scenario-hallucination',npcMode:'hide'})},
     {scenarioId,scenarioNodeId:'hallucination-leaves',...talk('これで、メインマップ6の右の道も通れるはずだよ。','道が開いたら、また会いにきて。','road-opens')},
@@ -22,6 +22,7 @@ const defs={
     {scenarioId,scenarioNodeId:'find-battery',...talk('カフェの前に、頼みごとを聞いてくれそうなおじいさんがいるよ。','人間電池のことを相談してみるといい。','old-man',{npc:'event-scenario-grandfather',npcMode:'show'})}
   ]),
   'event-scenario-grandfather':normal('椅子に座るおじいさん','npc27',talk('人間電池？　困っているマンドラゴラがいるのかい。','わしでよければ、力になろう。装置まで案内しておくれ。','install')),
+  'event-scenario-life-support-panel':normal('生命維持パネル','npc57',talk('生命維持パネル：植物育成のための電力が不足しています。','大型電池が抜けています。予備電源として使える、大きな電池が必要です。','battery-needed',{npc:'event-scenario-alien',npcMode:'show'})),
   'event-scenario-hallucination':normal('幻聴が聞こえる人','npc56',talk('うるさい……。工場のほうから、ずっと声が聞こえるんだ。','怖くて、ここから動けない。','',{}))
 };
 for(const [id,definition] of Object.entries(defs))layout.npcDefinitions[id]={...(layout.npcDefinitions[id]||{}),...definition};
@@ -29,13 +30,19 @@ for(const [id,definition] of Object.entries(defs))layout.npcDefinitions[id]={...
 const flow=(layout.scenarioFlows||[]).find(item=>item.id===scenarioId);
 if(flow){
   flow.nodes=(flow.nodes||[]).filter(node=>node.id!=='locked-factory');
-  const order=['cleaner','mandragora','battery-needed','alien','find-battery','old-man','install','silence','hallucination-leaves','road-opens','reward'];
+  const lifeSupport=flow.nodes.find(node=>node.id==='life-support-panel');
+  if(lifeSupport)Object.assign(lifeSupport,{type:'npc',npc:'npc57',name:'生命維持パネル',text:'植物育成の生命維持パネルを調べる。大型電池が抜けており、予備電源が必要だと分かる。',needFlag:'マンドラゴラを発見',setFlag:'生命維持パネルを確認'});
+  else flow.nodes.push({id:'life-support-panel',type:'npc',npc:'npc57',name:'生命維持パネル',text:'植物育成の生命維持パネルを調べる。大型電池が抜けており、予備電源が必要だと分かる。',needFlag:'マンドラゴラを発見',setFlag:'生命維持パネルを確認'});
+  const batteryNeeded=flow.nodes.find(node=>node.id==='battery-needed');
+  if(batteryNeeded)Object.assign(batteryNeeded,{type:'outcome',name:'予備電源が必要',text:'生命維持パネルを動かすには、大きな電池が必要だ。',needFlag:'生命維持パネルを確認',setFlag:'電池が必要'});
+  const order=['cleaner','mandragora','life-support-panel','battery-needed','alien','find-battery','old-man','install','silence','hallucination-leaves','road-opens','reward'];
   flow.nodes.sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
   const mandragora=flow.nodes.find(node=>node.id==='mandragora');
   if(mandragora)Object.assign(mandragora,{needFlag:'工場の唸り声を聞いた'});
   flow.edges=[
     {from:'cleaner',to:'mandragora',label:'マンドラゴラに話しかける'},
-    {from:'mandragora',to:'battery-needed',label:'状態を調べる'},
+    {from:'mandragora',to:'life-support-panel',label:'生命維持パネルを見る'},
+    {from:'life-support-panel',to:'battery-needed',label:'予備電源を確認する'},
     {from:'battery-needed',to:'alien',label:'宇宙人に聞く'},
     {from:'alien',to:'find-battery',label:'情報を得る'},
     {from:'find-battery',to:'old-man',label:'カフェへ行く'},
@@ -51,6 +58,7 @@ if(flow){
 const placements=[
   ['scenario-cleaner','event-scenario-cleaner',5,27,46,true],
   ['scenario-mandragora','event-scenario-mandragora',23,50,61,true],
+  ['scenario-life-support-panel','event-scenario-life-support-panel',23,72,61,false],
   ['scenario-alien','event-scenario-alien',10,53,66,false],
   ['scenario-grandfather','event-scenario-grandfather',0,30,55,false],
   ['scenario-hallucination','event-scenario-hallucination',5,88,63,true]
