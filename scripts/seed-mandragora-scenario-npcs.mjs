@@ -66,6 +66,9 @@ const placements=[
 ];
 for(const [id,npc,map,x,y,visible] of placements){const found=layout.objects.find(item=>item.id===id);Object.assign(found||layout.objects[layout.objects.push({id})-1],{id,kind:'npc',npc,map,x,y,visible})}
 
+const reportId='scenario-mandragora-report',report=layout.objects.find(item=>item.id===reportId);
+Object.assign(report||layout.objects[layout.objects.push({id:reportId})-1],{id:reportId,kind:'item',item:'レポート.png',map:23,x:61,y:70,visible:true});
+
 const save=await fetch(endpoint,{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(layout)});
 if(!save.ok)throw new Error('layout save failed: '+save.status);
 console.log(JSON.stringify({registered:Object.keys(defs),placed:placements.map(([,npc,map,x,y,visible])=>({npc,map,x,y,visible}))},null,2));
