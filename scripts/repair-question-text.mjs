@@ -2,7 +2,7 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const endpoint = 'https://nekosagasi.pages.dev/api/layout';
-const source = await readFile(new URL('../app.js', import.meta.url), 'utf8');
+const source = await readFile(new URL('../app-card-battle-v2.js', import.meta.url), 'utf8');
 const start = source.indexOf('const surveyImageFiles=');
 const end = source.indexOf('const gameItemSrc=');
 if (start < 0 || end < start) throw new Error('Question defaults were not found');

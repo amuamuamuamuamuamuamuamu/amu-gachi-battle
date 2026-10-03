@@ -16,11 +16,12 @@ target.mkdir()
 
 excluded_directories = {
     ".git", ".vscode", ".wrangler", ".repair-backups",
-    "scripts", "functions", "復元用", "マップ", "game-maps", "多数派アンケート",
+    "scripts", "functions", "復元用", "マップ", "game-maps", "map", "多数派アンケート",
     "作業中かold",
 }
 excluded_suffixes = {".psd", ".ps1", ".py", ".md"}
 excluded_files = {".assetsignore", ".gitignore", "wrangler.jsonc", "NPC情報.txt"}
+excluded_files.update({"app.js", "app-card-battle.js", "app-hiragana.js"})
 count = 0
 size = 0
 for base, directories, files in os.walk(root):
@@ -46,7 +47,7 @@ for base, directories, files in os.walk(root):
         count += 1
         size += source.stat().st_size
 
-for required in ("index.html", "map/index.html", "app.js", "game-assets/maps/m1-game.webp"):
+for required in ("index.html", "app-card-battle-v2.js", "game-assets/maps/m1-game.webp"):
     if not (target / required).is_file():
         raise SystemExit(f"Required public asset is missing: {required}")
 print(f"Prepared {count} assets ({size / 1024 / 1024:.1f} MiB) in {target}")
