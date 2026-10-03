@@ -108,7 +108,7 @@ const point = item => `マップ${Number(item.map) + 1} (${format(item.x)}, ${fo
       const trade = definition.warashibe || {};
       npcLines.push('【わらしべ長者】');
       npcLines.push(`相手が出す物: ${trade.offerItem || '未設定'}`);
-      npcLines.push('候補: プレイヤー所持品のうち、相手の物より1ランク低い以上');
+      npcLines.push('候補: プレイヤーのわらしべアイテム1個が、相手の物より1ランク低い以上');
       npcLines.push('成立率: 70%（30%は「うーん、やめとく。」）');
     }
     if ((definition.word1 || []).length || (definition.word2 || []).length) {
