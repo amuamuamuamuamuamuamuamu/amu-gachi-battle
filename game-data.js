@@ -48,6 +48,11 @@ window.GAME_DATA=GAME_DATA;
 
 GAME_DATA.assets.items.unshift('レポート');
 GAME_DATA.assets.items.unshift('人間電池');
+GAME_DATA.assets.items.unshift(
+ '一本の藁','棒付き飴','キーホルダーの携帯ゲーム機','耳かき','ハンバーガーおじさんキーホルダー',
+ 'カフェの女の子のぬいぐるみ','輪ゴム','宝の地図','猫のウンココーヒー豆','古いコイン　おじさんの柄',
+ '海外の本','蚊の入った琥珀','アンモナイトの化石'
+);
 GAME_DATA.assets.npcs.push('掃除おばさん');
 GAME_DATA.assets.npcs.push('生命維持パネル2');
 GAME_DATA.assets.npcs.push('骨の犬','おにぎりマン','全身札束マン','はいはいする赤ちゃん');
