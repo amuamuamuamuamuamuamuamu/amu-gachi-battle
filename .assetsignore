@@ -8,10 +8,3 @@
 .repair-backups/**
 .pages-deploy-*/**
 NPC情報.txt
-
-# 旧ゲーム実装・旧マップは履歴保管用。公開アセットには含めない。
-app.js
-app-card-battle.js
-app-hiragana.js
-game-maps/**
-map/**

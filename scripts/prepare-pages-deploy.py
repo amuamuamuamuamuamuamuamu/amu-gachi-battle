@@ -16,12 +16,11 @@ target.mkdir()
 
 excluded_directories = {
     ".git", ".vscode", ".wrangler", ".repair-backups",
-    "scripts", "functions", "復元用", "マップ", "game-maps", "map", "多数派アンケート",
+    "scripts", "functions", "復元用", "マップ", "多数派アンケート",
     "作業中かold",
 }
 excluded_suffixes = {".psd", ".ps1", ".py", ".md"}
 excluded_files = {".assetsignore", ".gitignore", "wrangler.jsonc", "NPC情報.txt"}
-excluded_files.update({"app.js", "app-card-battle.js", "app-hiragana.js"})
 count = 0
 size = 0
 for base, directories, files in os.walk(root):
