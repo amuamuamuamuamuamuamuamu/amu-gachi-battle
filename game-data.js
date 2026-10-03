@@ -61,3 +61,5 @@ GAME_DATA.assets.itemRanks=Object.fromEntries(GAME_DATA.assets.items.map(name=>{
   let hash=2166136261;for(const char of name)hash=Math.imul(hash^char.charCodeAt(0),16777619);
   return[name,1+(hash>>>0)%20];
 }));
+// わらしべ長者の最初の一品は、必ずランク1にする。
+GAME_DATA.assets.itemRanks['一本の藁']=1;
