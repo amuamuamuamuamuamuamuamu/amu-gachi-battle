@@ -4,11 +4,13 @@
  let sharedNpcDataLoaded=false;
  const mount=()=>{
   const select=document.querySelector('#npcPicker'),visual=document.querySelector('.npc-picker-visual');
-  if(!select||!visual||select.dataset.eventNpcPicker)return;
+  if(!select||!visual)return;
   let data;try{data=JSON.parse(localStorage.getItem(key)||'{}')}catch{return}
   // NPCツールで登録した全種類を配置候補にする。イベント種別で絞ると、わらしべ長者などが消えてしまう。
   const entries=Object.entries(data.npcDefinitions||{}).filter(([,n])=>n?.eventNpcName&&n?.profileId).map(([id,n])=>[id,{...n,eventNpcName:n.eventType==='cardbattle'?String(n.eventNpcName).replace(/^カードバトル/,'カード'):n.eventNpcName}]);
   if(!entries.length)return;
+  const signature=entries.map(([id,n])=>id+'|'+n.profileId+'|'+n.eventNpcName).join('||');
+  if(select.dataset.eventNpcPicker&&select.dataset.eventNpcSignature===signature)return;
   window.__eventNpcProfiles=Object.fromEntries(entries.map(([id,n])=>[id,{profileId:n.profileId,name:n.eventNpcName}]));
   const menu=visual.querySelector('.npc-picker-menu'),toggle=visual.querySelector('.npc-picker-toggle');
   if(!menu||!toggle)return;
@@ -16,7 +18,7 @@
   const refresh=()=>{const entry=entries.find(([id])=>id===select.value)||entries[0],npc=entry[1];toggle.querySelector('img').src='npc-light/'+npc.profileId+'.png';toggle.querySelector('img').alt=npc.eventNpcName;toggle.querySelector('span').textContent=npc.eventNpcName};
   menu.replaceChildren(...entries.map(([id,n])=>{const button=document.createElement('button'),image=document.createElement('img'),name=document.createElement('span');button.type='button';button.className='npc-picker-option';image.src='npc-light/'+n.profileId+'.png';image.alt='';name.textContent=n.eventNpcName;button.append(image,name);button.onclick=()=>{select.value=id;select.dispatchEvent(new Event('change'));refresh();menu.hidden=true;toggle.setAttribute('aria-expanded','false')};return button}));
   toggle.onclick=()=>{menu.hidden=!menu.hidden;toggle.setAttribute('aria-expanded',String(!menu.hidden))};
-  select.dataset.eventNpcPicker='1';select.addEventListener('change',()=>setTimeout(refresh,0));select.value=entries[0][0];select.dispatchEvent(new Event('change',{bubbles:true}));setTimeout(refresh,0);
+  select.dataset.eventNpcPicker='1';select.dataset.eventNpcSignature=signature;select.addEventListener('change',()=>setTimeout(refresh,0));select.value=entries[0][0];select.dispatchEvent(new Event('change',{bubbles:true}));setTimeout(refresh,0);
  };
  const repairMarkers=()=>{
   const profiles=window.__eventNpcProfiles||{};

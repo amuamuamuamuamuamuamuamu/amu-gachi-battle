@@ -1,6 +1,6 @@
 /* イベントを親にしたNPC登録ツール。保存形式は従来の npcDefinitions と互換。 */
 (()=>{
- const key='nekosagasi-layout-v1',types=[['words','言葉を作る','言葉おじさん'],['normal','通常会話','会話おじさん'],['item','物を渡す','渡すおじさん'],['ultimate','究極の2択','２択おじさん'],['survey','多数派','多数派おじさん'],['quiz','クイズ','クイズおじさん'],['cardbattle','カードバトル','カードバトルNPC'],['warashibe','わらしべ長者','わらしべおじさん']],assets=typeof GAME_DATA!=='undefined'?(GAME_DATA.assets||{}):{},profiles=assets.npcs||[],items=(assets.items||[]).map(name=>name+'.png'),arts=Array.from({length:31},(_,i)=>String(i+1).padStart(3,'0'));
+ const key='nekosagasi-layout-v1',types=[['words','言葉を作る','言葉おじさん'],['normal','通常会話','会話おじさん'],['item','物を渡す','渡すおじさん'],['ultimate','究極の2択','２択おじさん'],['survey','多数派','多数派おじさん'],['quiz','クイズ','クイズおじさん'],['cardbattle','カードバトル','カードバトルNPC'],['warashibe','わらしべ長者','わらしべおじさん']],assets=typeof GAME_DATA!=='undefined'?(GAME_DATA.assets||{}):{},profiles=assets.npcs||[],items=[...new Set([...(assets.items||[]),'ちょっと臭い水道水'])].map(name=>name+'.png'),arts=Array.from({length:38},(_,i)=>String(i+1).padStart(3,'0'));
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const read=()=>{try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return {}}};
  const save=data=>{localStorage.setItem(key,JSON.stringify(data));return fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)}).catch(()=>null)};
@@ -46,11 +46,28 @@
    event.preventDefault();event.stopImmediatePropagation();
    const form=save.closest('form'),profileId=form.elements.profileId.value;if(!profileId){alert('NPCを選択してください');return}
    const data=(()=>{try{return JSON.parse(localStorage.getItem('nekosagasi-layout-v1')||'{}')}catch{return{}}})();data.npcDefinitions??={};
-   const profileIndex=Number(String(profileId).slice(3))-1,name=(GAME_DATA.assets.npcs||[])[profileIndex]||'NPC',edit=root.dataset.editingId||new URLSearchParams(location.search).get('eventEdit'),id=edit&&data.npcDefinitions[edit]?edit:'event-'+crypto.randomUUID();
+   const profileIndex=Number(String(profileId).slice(3))-1,name=(GAME_DATA.assets.npcs||[])[profileIndex]||'NPC',isEditing=save.textContent.trim()==='保存する',edit=isEditing?(root.dataset.editingId||new URLSearchParams(location.search).get('eventEdit')):'',id=edit&&data.npcDefinitions[edit]?edit:'event-'+crypto.randomUUID();
    data.npcDefinitions[id]={...(data.npcDefinitions[id]||{}),eventType:'warashibe',profileId,eventNpcName:'わらしべ'+name,firstMessage:form.elements.warashibeFirstMessage.value,afterMessage:form.elements.warashibeAfterMessage.value,cancelMessage:form.elements.warashibeCancelMessage.value,afterEventAction:'cooldown',cooldownCondition:'time-5m',cooldownMessage:form.elements.warashibeCooldownMessage.value,warashibe:{offerItem:form.elements.offerItem.value}};
    localStorage.setItem('nekosagasi-layout-v1',JSON.stringify(data));const response=await fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)});if(!response.ok){alert('保存できませんでした');return}root.dataset.editingId=id;window.showSaveSuccess?.();setTimeout(()=>{const url=new URL(location.href);url.searchParams.set('eventEdit',id);location.href=url.toString()},300);
  },true);
 })();
+
+// わらしべ用の項目は通常イベントと異なるため、専用の保存経路を先に確保する。
+// 動的に読み込まれる補助処理の順序に左右されず、登録ボタンで必ず共有データへ反映する。
+window.addEventListener('click',async event=>{
+ const save=event.target.closest?.('.event-npc-editor-v2 .event-save'),root=save?.closest('.event-npc-editor-v2');
+ if(!save||root?.querySelector('.event-type-tabs .active')?.dataset.type!=='warashibe')return;
+ event.preventDefault();event.stopImmediatePropagation();
+ const form=save.closest('form'),profileId=form?.elements.profileId?.value;
+ if(!profileId){alert('NPCを選択してください');return}
+ try{
+  const data=JSON.parse(localStorage.getItem('nekosagasi-layout-v1')||'{}');data.npcDefinitions??={};
+  const profileIndex=Number(String(profileId).slice(3))-1,name=(window.GAME_DATA?.assets?.npcs||[])[profileIndex]||'NPC',isEditing=save.textContent.trim()==='保存する',edit=isEditing?(root.dataset.editingId||new URLSearchParams(location.search).get('eventEdit')):'',id=edit&&data.npcDefinitions[edit]?edit:'event-'+crypto.randomUUID();
+  data.npcDefinitions[id]={...(data.npcDefinitions[id]||{}),eventType:'warashibe',profileId,eventNpcName:'わらしべ'+name,firstMessage:form.elements.warashibeFirstMessage?.value||'',afterMessage:form.elements.warashibeAfterMessage?.value||'',cancelMessage:form.elements.warashibeCancelMessage?.value||'',afterEventAction:'cooldown',cooldownCondition:'time-5m',cooldownMessage:form.elements.warashibeCooldownMessage?.value||'',warashibe:{offerItem:form.elements.offerItem?.value||''}};
+  localStorage.setItem('nekosagasi-layout-v1',JSON.stringify(data));const response=await fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)});if(!response.ok)throw new Error('save failed');
+  root.dataset.editingId=id;window.showSaveSuccess?.();setTimeout(()=>{const url=new URL(location.href);url.searchParams.set('eventEdit',id);location.href=url.toString()},300);
+ }catch{alert('保存できませんでした。通信を確認してもう一度試してください。')}
+},{capture:true});
 
 // 通常会話のフラグ会話は、登録フォーム内で何件でも追加・削除できる。
 (()=>{

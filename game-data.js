@@ -48,6 +48,7 @@ window.GAME_DATA=GAME_DATA;
 
 GAME_DATA.assets.items.unshift('レポート');
 GAME_DATA.assets.items.unshift('人間電池');
+GAME_DATA.assets.items.unshift('ちょっと臭い水道水');
 GAME_DATA.assets.items.unshift(
  '一本の藁','棒付き飴','キーホルダーの携帯ゲーム機','耳かき','ハンバーガーおじさんキーホルダー',
  'カフェの女の子のぬいぐるみ','輪ゴム','宝の地図','猫のウンココーヒー豆','古いコイン　おじさんの柄',
@@ -56,6 +57,7 @@ GAME_DATA.assets.items.unshift(
 GAME_DATA.assets.npcs.push('掃除おばさん');
 GAME_DATA.assets.npcs.push('生命維持パネル2');
 GAME_DATA.assets.npcs.push('骨の犬','おにぎりマン','全身札束マン','はいはいする赤ちゃん');
+GAME_DATA.assets.npcs.push('弱ってるマンドラゴラ');
 // わらしべ長者イベント用。名前から決まる固定の疑似ランダム値なので、端末ごとに価値が変わらない。
 GAME_DATA.assets.itemRanks=Object.fromEntries(GAME_DATA.assets.items.map(name=>{
   let hash=2166136261;for(const char of name)hash=Math.imul(hash^char.charCodeAt(0),16777619);
