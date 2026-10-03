@@ -48,7 +48,7 @@
    const data=(()=>{try{return JSON.parse(localStorage.getItem('nekosagasi-layout-v1')||'{}')}catch{return{}}})();data.npcDefinitions??={};
    const profileIndex=Number(String(profileId).slice(3))-1,name=(GAME_DATA.assets.npcs||[])[profileIndex]||'NPC',edit=root.dataset.editingId||new URLSearchParams(location.search).get('eventEdit'),id=edit&&data.npcDefinitions[edit]?edit:'event-'+crypto.randomUUID();
    data.npcDefinitions[id]={...(data.npcDefinitions[id]||{}),eventType:'warashibe',profileId,eventNpcName:'わらしべ'+name,firstMessage:form.elements.warashibeFirstMessage.value,afterEventAction:'cooldown',cooldownMessage:'',warashibe:{offerItem:form.elements.offerItem.value}};
-   localStorage.setItem('nekosagasi-layout-v1',JSON.stringify(data));const response=await fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)});if(!response.ok){alert('保存できませんでした');return}root.dataset.editingId=id;window.showSaveSuccess?.();
+   localStorage.setItem('nekosagasi-layout-v1',JSON.stringify(data));const response=await fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)});if(!response.ok){alert('保存できませんでした');return}root.dataset.editingId=id;window.showSaveSuccess?.();setTimeout(()=>{const url=new URL(location.href);url.searchParams.set('eventEdit',id);location.href=url.toString()},300);
  },true);
 })();
 
