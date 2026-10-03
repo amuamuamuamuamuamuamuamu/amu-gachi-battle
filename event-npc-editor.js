@@ -35,6 +35,32 @@
  new MutationObserver(mount).observe(document.documentElement,{childList:true,subtree:true});setInterval(mount,500);document.addEventListener('change',event=>{const select=event.target.closest?.('.event-npc-editor-v2 select[name="profileId"]');if(!select)return;const root=select.closest('.event-npc-editor-v2'),type=root.querySelector('.event-type-tabs .active')?.dataset.type||'words',name=select.value?autoName(type,select.value):'',image=root.querySelector('.event-profile-preview');root.querySelector('[name="eventNpcName"]').value=name;if(image){image.hidden=!select.value;image.src=select.value?'npc-light/'+select.value+'.png':''}});
 })();
 
+// 「物を渡す」NPCは、レイアウト全体ではなく登録する1件だけを共有データへ保存する。
+// 古いマップ編集画面が開いたままでも、新規登録が上書きで消えないようにする。
+(()=>{
+ if(window.__itemNpcAtomicSaveInstalled)return;
+ window.__itemNpcAtomicSaveInstalled=true;
+ const layoutKey='nekosagasi-layout-v1',emptyOutcome=()=>({item:'',card:'',building:'',buildingMode:'show',npc:'',npcMode:'show'});
+ document.addEventListener('click',async event=>{
+  const save=event.target.closest?.('.event-npc-editor-v2 .event-save'),root=save?.closest('.event-npc-editor-v2');
+  if(!save||root?.querySelector('.event-type-tabs .active')?.dataset.type!=='item')return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const form=save.closest('.event-npc-form'),profileId=form?.elements.profileId?.value;
+  if(!profileId){alert('NPCを選択してください');return}
+  const itemRegistrations=[...form.querySelectorAll('[data-item]')].map(card=>({requiredItem:card.querySelector('[data-f="requiredItem"]')?.value||'',itemArt:card.querySelector('[data-f="itemArt"]')?.value||'',receiveMessage:card.querySelector('[data-f="receiveMessage"]')?.value||'',outcome:Object.fromEntries([...card.querySelectorAll('.event-outcome [data-o]')].map(input=>[input.dataset.o,input.value]))}));
+  if(!itemRegistrations.some(entry=>entry.requiredItem)){alert('「受け取るもの」を1つ選んでください');return}
+  const requestedId=new URLSearchParams(location.search).get('eventEdit'),id=requestedId?.startsWith('event-')?requestedId:'event-'+crypto.randomUUID(),behavior=form.elements.afterEventAction?.value||'remove',npc={eventType:'item',profileId,eventNpcName:form.elements.eventNpcName?.value||'渡す'+(form.elements.profileId?.selectedOptions?.[0]?.textContent||'NPC'),firstMessage:form.elements.firstMessage?.value||'',afterEventAction:behavior==='remove'?'remove':'cooldown',cooldownCondition:behavior==='cooldown-4'?'npc-events-4':behavior==='cooldown-5m'?'time-5m':'npc-events-2',cooldownMessage:form.elements.cooldownMessage?.value||'',itemRegistrations};
+  try{
+   const response=await fetch('/api/layout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'upsert-event-npc',id,npc})});
+   if(!response.ok)throw new Error('save failed');
+   const latest=await fetch('/api/layout',{cache:'no-store'}).then(result=>result.ok?result.json():null);
+   if(!latest?.layout?.npcDefinitions?.[id])throw new Error('verification failed');
+   localStorage.setItem(layoutKey,JSON.stringify(latest.layout));window.showSaveSuccess?.();
+   setTimeout(()=>{const url=new URL(location.href);url.searchParams.set('eventEdit',id);location.href=url.toString()},180);
+  }catch{alert('保存できませんでした。通信を確認してもう一度試してください')}
+ },true);
+})();
+
 // わらしべ長者はアイテム交換だけを保存する。汎用イベントの「起きること」は使わない。
 (()=>{
  const isWarashibe=root=>root?.querySelector('.event-type-tabs .active')?.dataset.type==='warashibe';

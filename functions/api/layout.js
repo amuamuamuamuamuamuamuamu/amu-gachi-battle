@@ -16,6 +16,12 @@ export async function onRequestPut({request,env}){
   if(questionTexts.filter(value=>typeof value==="string"&&/\?{3,}/.test(value)).length>=10)
     return new Response(JSON.stringify({error:"corrupted question text"}),{status:409,headers});
   const previous=await env.NEKOSAGASI_LAYOUT.get("shared-layout","json");
+  // マップ編集など、古い端末が持つ全体レイアウトを保存しても、新しく登録されたイベントNPCは消さない。
+  if(previous?.npcDefinitions){
+    layout.npcDefinitions??={};
+    for(const [id,npc] of Object.entries(previous.npcDefinitions))
+      if(id.startsWith("event-")&&!layout.npcDefinitions[id])layout.npcDefinitions[id]=npc;
+  }
   if(previous)await env.NEKOSAGASI_LAYOUT.put("shared-layout-backup",JSON.stringify({savedAt:new Date().toISOString(),layout:previous}));
   await env.NEKOSAGASI_LAYOUT.put("shared-layout",JSON.stringify(layout));
   return new Response(JSON.stringify({ok:true}),{headers});
@@ -23,6 +29,19 @@ export async function onRequestPut({request,env}){
 
 export async function onRequestPost({request,env}){
   const body=await request.json().catch(()=>null);
+  // 新規イベントNPCは、クライアントの古いレイアウト全体を送らず、このNPCだけを現在の共有データへ追加する。
+  if(body?.action==="upsert-event-npc"){
+    const id=String(body?.id||""),npc=body?.npc;
+    if(!/^event-[\w-]{8,160}$/.test(id)||!npc||typeof npc!=="object"||Array.isArray(npc)||npc.eventType!=="item"||typeof npc.profileId!=="string"||!npc.profileId||!Array.isArray(npc.itemRegistrations)||!npc.itemRegistrations.some(entry=>typeof entry?.requiredItem==="string"&&entry.requiredItem))
+      return new Response(JSON.stringify({error:"invalid event npc"}),{status:400,headers});
+    const layout=await env.NEKOSAGASI_LAYOUT.get("shared-layout","json")||{};
+    layout.npcDefinitions??={};
+    const previous=await env.NEKOSAGASI_LAYOUT.get("shared-layout","json");
+    if(previous)await env.NEKOSAGASI_LAYOUT.put("shared-layout-backup",JSON.stringify({savedAt:new Date().toISOString(),layout:previous}));
+    layout.npcDefinitions[id]=npc;
+    await env.NEKOSAGASI_LAYOUT.put("shared-layout",JSON.stringify(layout));
+    return new Response(JSON.stringify({ok:true,id}),{headers});
+  }
   // 共有レイアウト全体をクライアントから書き戻さず、ゲーム内に置く単体アイテムだけを安全に追加する。
   if(body?.action==="add-map-item"){
     const item=body?.item;
