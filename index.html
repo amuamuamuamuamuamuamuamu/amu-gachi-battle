@@ -6,13 +6,13 @@
   <title>ねこさがし</title>
   <link rel="stylesheet" href="visual.css?v=20261003-warashibe-title-select-1">
 <script src="game-data.js?v=20261003-warashibe-book-1"></script>
-  <script src="sync.js?v=20261003-warashibe-ranks-1"></script>
+  <script src="sync.js?v=20261003-warashibe-dialogue-1"></script>
 </head>
 <body>
   <main class="page"><section id="app" class="card"></section></main>
   <script>
     const q=new URLSearchParams(location.search),j=document.createElement('script');
-j.src=q.has('topdown')?'app-topdown.js?v=20260928-map-refresh-2':q.has('hiragana')?'app-hiragana.js?v=20260928-map-refresh-2':'app-card-battle-v2.js?v=20261003-warashibe-success-clean-1';
+j.src=q.has('topdown')?'app-topdown.js?v=20260928-map-refresh-2':q.has('hiragana')?'app-hiragana.js?v=20260928-map-refresh-2':'app-card-battle-v2.js?v=20261003-warashibe-dialogue-1';
     document.body.append(j);
   </script>
 </body>
