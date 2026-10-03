@@ -104,6 +104,13 @@ const point = item => `マップ${Number(item.map) + 1} (${format(item.x)}, ${fo
       npcLines.push(`起きること: ${outcome(talk.initial?.outcome || talk.outcome)}`);
       for (const condition of talk.conditions || []) npcLines.push(`フラグ会話: scenario=${condition.scenarioId || ''} / flow=${condition.scenarioNodeId || ''} / 言葉=${quote(condition.message || '')} / 結果=${outcome(condition.outcome)}`);
     }
+    if (definition.eventType === 'warashibe' || definition.warashibe) {
+      const trade = definition.warashibe || {};
+      npcLines.push('【わらしべ長者】');
+      npcLines.push(`NPCがくれる物: ${trade.offerItem || '未設定'}`);
+      npcLines.push(`受け取る物: ${(trade.acceptedItems || []).join('、') || '未設定'}`);
+      npcLines.push('成立条件: NPCの物より1ランク低い以上 / 成立率70%');
+    }
     if ((definition.word1 || []).length || (definition.word2 || []).length) {
       npcLines.push('【言葉を作る】');
       npcLines.push(`言葉1: ${(definition.word1 || []).map(quote).join('、') || '未設定'}`);

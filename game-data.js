@@ -56,3 +56,8 @@ GAME_DATA.assets.items.unshift(
 GAME_DATA.assets.npcs.push('掃除おばさん');
 GAME_DATA.assets.npcs.push('生命維持パネル2');
 GAME_DATA.assets.npcs.push('骨の犬','おにぎりマン','全身札束マン','はいはいする赤ちゃん');
+// わらしべ長者イベント用。名前から決まる固定の疑似ランダム値なので、端末ごとに価値が変わらない。
+GAME_DATA.assets.itemRanks=Object.fromEntries(GAME_DATA.assets.items.map(name=>{
+  let hash=2166136261;for(const char of name)hash=Math.imul(hash^char.charCodeAt(0),16777619);
+  return[name,1+(hash>>>0)%20];
+}));
