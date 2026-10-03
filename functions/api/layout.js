@@ -22,7 +22,24 @@ export async function onRequestPut({request,env}){
 }
 
 export async function onRequestPost({request,env}){
-  const body=await request.json().catch(()=>null),id=String(body?.surveyId||''),choice=Number(body?.choice);
+  const body=await request.json().catch(()=>null);
+  // 共有レイアウト全体をクライアントから書き戻さず、ゲーム内に置く単体アイテムだけを安全に追加する。
+  if(body?.action==="add-map-item"){
+    const item=body?.item;
+    const map=Number(body?.map),x=Number(body?.x),y=Number(body?.y),itemId=String(body?.id||"");
+    if(item!=="ちょっと臭い水道水.png"||itemId!=="water-pipe-1"||!Number.isInteger(map)||map<0||map>99||!Number.isFinite(x)||!Number.isFinite(y)||x<0||x>100||y<0||y>100)
+      return new Response(JSON.stringify({error:"invalid map item"}),{status:400,headers});
+    const layout=await env.NEKOSAGASI_LAYOUT.get("shared-layout","json")||{};
+    layout.objects??=[];
+    const existing=layout.objects.find(entry=>entry?.id===itemId);
+    if(existing)return new Response(JSON.stringify({ok:true,existing:true,item:existing}),{headers});
+    const placed={id:itemId,kind:"item",map,x,y,item};
+    layout.objects.push(placed);
+    await env.NEKOSAGASI_LAYOUT.put("shared-layout-backup",JSON.stringify({savedAt:new Date().toISOString(),layout:await env.NEKOSAGASI_LAYOUT.get("shared-layout","json")}));
+    await env.NEKOSAGASI_LAYOUT.put("shared-layout",JSON.stringify(layout));
+    return new Response(JSON.stringify({ok:true,item:placed}),{headers});
+  }
+  const id=String(body?.surveyId||''),choice=Number(body?.choice);
   // 既定の多数派問題IDには画像名由来の日本語が含まれるため、Unicodeの文字と数字も受け付ける。
   if(!/^survey[\p{L}\p{N}_-]{1,160}$/u.test(id)||(choice!==0&&choice!==1))return new Response(JSON.stringify({error:"invalid survey"}),{status:400,headers});
   const key="survey-"+id,current=await env.NEKOSAGASI_LAYOUT.get(key,"json")||[0,0];
