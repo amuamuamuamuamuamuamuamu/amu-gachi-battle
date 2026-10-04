@@ -5,7 +5,10 @@
   let activeNpc='';
   /* エディタ本体が古いメモリ上のレイアウトを保存しても、追加した結果設定は残す。 */
   const originalSetItem=localStorage.setItem.bind(localStorage);
-  localStorage.setItem=(key,value)=>{if(key===layoutKey){try{const next=JSON.parse(value),current=JSON.parse(localStorage.getItem(layoutKey)||'{}');Object.keys(next.npcDefinitions||{}).forEach(id=>{const n=next.npcDefinitions[id],c=current.npcDefinitions?.[id];if(!c)return;(n.itemRegistrations||[]).forEach((e,i)=>{if(c.itemRegistrations?.[i]?.outcome)e.outcome=c.itemRegistrations[i].outcome});(n.ultimates||[]).forEach((e,i)=>{if(c.ultimates?.[i]?.outcomes)e.outcomes=c.ultimates[i].outcomes});(n.surveys||[]).forEach((e,i)=>{if(c.surveys?.[i]?.majorityOutcome)e.majorityOutcome=c.surveys[i].majorityOutcome});(n.quizzes||[]).forEach((e,i)=>{if(c.quizzes?.[i]?.correctOutcome)e.correctOutcome=c.quizzes[i].correctOutcome})});value=JSON.stringify(next)}catch{}}originalSetItem(key,value)};
+  // Do not restore outcomes from the previous local snapshot here.  The current
+  // event editor serializes every outcome itself, so doing so discards a newly
+  // selected NPC/building visibility setting immediately before it is saved.
+  localStorage.setItem=(key,value)=>originalSetItem(key,value);
   const read=()=>{try{return JSON.parse(localStorage.getItem(layoutKey)||'{}')}catch{return {}}};
   const save=data=>{
     localStorage.setItem(layoutKey,JSON.stringify(data));
@@ -70,28 +73,12 @@
     const image=event.target.closest?.('.character-npc');
     if(image){const byName=Object.entries(read().npcDefinitions||{}).find(([id,def])=>id.startsWith('event-')&&(def.eventNpcName||def.name)===image.alt);const hit=(image.src.match(/npc(\d+)\.png/)||[])[1];activeNpc=byName?.[0]||(hit?'npc'+hit:'');}
   },true);
-  document.addEventListener('click',event=>{
-    const button=event.target.closest?.('.npc-quiz-question .npc-quiz-answers button');if(!button)return;
-    const box=button.closest('.npc-quiz-question'),def=findDefinition();if(!box||!def)return;
-    const index=[...button.parentElement.parentElement.querySelectorAll('button')].indexOf(button);
-    if(!box.classList.contains('npc-survey')){
-      const question=box.querySelector('.npc-made-phrase')?.textContent||'';
-      const entry=(def.quizzes||[]).find(x=>x.question===question);
-      if(entry&&index===Number(entry.answer))setTimeout(()=>emit(entry.correctOutcome),1950);
-    }
-  },true);
   window.addEventListener('npc-ultimate-result-complete',event=>{
     const {npc,question,choice}=event.detail||{};
     const def=read().npcDefinitions?.[npc]||findDefinition();
     const entry=(def?.ultimates||[]).find(x=>(x.question||x.initialMessage||'')===question);
     if(entry)emit(entry.outcomes?.[choice]);
   });
-  document.addEventListener('click',event=>{
-    const button=event.target.closest?.('.npc-give-item');if(!button)return;
-    const def=findDefinition(),name=button.querySelector('span')?.textContent;if(!def||!name)return;
-    const entry=(def.itemRegistrations||[]).find(x=>x.requiredItem?.replace('.png','')===name);
-    if(entry)setTimeout(()=>emit(entry.outcome),2050);
-  },true);
   new MutationObserver(()=>{
     document.querySelectorAll('.npc-survey .survey-result:not([data-outcome-done])').forEach(node=>{
       node.dataset.outcomeDone='1';if(!node.textContent.includes('多数派'))return;

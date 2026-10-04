@@ -5,12 +5,12 @@
  const removeCurrent=async root=>{
   const id=root.dataset.editingId||new URLSearchParams(location.search).get('eventEdit');
   if(!id||!confirm('本当に削除しますか？'))return;
+  const response=await fetch('/api/layout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'delete-event-npc',id})});
+  if(!response.ok){alert('削除を保存できませんでした。');return}
   const data=read();
   delete data.npcDefinitions?.[id];
   for(const field of ['objects','placedObjects'])if(Array.isArray(data[field]))data[field]=data[field].filter(item=>!(item.kind==='npc'&&item.npc===id));
   localStorage.setItem(key,JSON.stringify(data));
-  const response=await fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)});
-  if(!response.ok){alert('削除を保存できませんでした。');return}
   location.assign(location.pathname+'?editor=npcs');
  };
  const refresh=()=>document.querySelectorAll('.event-npc-editor-v2').forEach(root=>{

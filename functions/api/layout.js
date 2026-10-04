@@ -1,4 +1,7 @@
 const headers={"content-type":"application/json; charset=utf-8","cache-control":"no-store"};
+const npcEventTypes=new Set(["words","normal","item","ultimate","survey","quiz","cardbattle","warashibe"]);
+const isRegisteredEventNpc=(id,npc)=>id.startsWith("event-")&&npc&&typeof npc==="object"&&!Array.isArray(npc)&&npcEventTypes.has(npc.eventType)&&typeof npc.profileId==="string"&&npc.profileId;
+const cleanNpcs=layout=>{layout.npcDefinitions=Object.fromEntries(Object.entries(layout.npcDefinitions||{}).filter(([id,npc])=>isRegisteredEventNpc(id,npc)));const ids=new Set(Object.keys(layout.npcDefinitions));if(Array.isArray(layout.objects))layout.objects=layout.objects.filter(item=>item?.kind!=="npc"||ids.has(item.npc));return layout};
 
 export async function onRequestGet({request,env}){
   const surveyId=new URL(request.url).searchParams.get("surveyId");
@@ -9,6 +12,7 @@ export async function onRequestGet({request,env}){
 export async function onRequestPut({request,env}){
   const layout=await request.json().catch(()=>null);
   if(!layout||typeof layout!=="object"||Array.isArray(layout)||JSON.stringify(layout).length>2_000_000)return new Response(JSON.stringify({error:"invalid layout"}),{status:400,headers});
+  cleanNpcs(layout);
   const questionTexts=Object.values(layout.npcDefinitions||{}).flatMap(npc=>[
     ...(npc?.quizzes||[]).flatMap(quiz=>[quiz?.question,...(quiz?.choices||[])]),
     ...(npc?.surveys||[]).flatMap(survey=>[survey?.question,...(survey?.choices||[])]),
@@ -29,16 +33,33 @@ export async function onRequestPut({request,env}){
 
 export async function onRequestPost({request,env}){
   const body=await request.json().catch(()=>null);
+  if(body?.action==="cleanup-unregistered-npcs"){
+    const layout=await env.NEKOSAGASI_LAYOUT.get("shared-layout","json")||{},previous=structuredClone(layout),before=Object.keys(layout.npcDefinitions||{}).length;
+    cleanNpcs(layout);
+    await env.NEKOSAGASI_LAYOUT.put("shared-layout-backup",JSON.stringify({savedAt:new Date().toISOString(),layout:previous}));
+    await env.NEKOSAGASI_LAYOUT.put("shared-layout",JSON.stringify(layout));
+    return new Response(JSON.stringify({ok:true,removed:before-Object.keys(layout.npcDefinitions).length}),{headers});
+  }
   // 新規イベントNPCは、クライアントの古いレイアウト全体を送らず、このNPCだけを現在の共有データへ追加する。
   if(body?.action==="upsert-event-npc"){
     const id=String(body?.id||""),npc=body?.npc;
-    if(!/^event-[\w-]{8,160}$/.test(id)||!npc||typeof npc!=="object"||Array.isArray(npc)||npc.eventType!=="item"||typeof npc.profileId!=="string"||!npc.profileId||!Array.isArray(npc.itemRegistrations)||!npc.itemRegistrations.some(entry=>typeof entry?.requiredItem==="string"&&entry.requiredItem))
+    if(!/^event-[\w-]{8,160}$/.test(id)||!isRegisteredEventNpc(id,npc))
       return new Response(JSON.stringify({error:"invalid event npc"}),{status:400,headers});
     const layout=await env.NEKOSAGASI_LAYOUT.get("shared-layout","json")||{};
     layout.npcDefinitions??={};
     const previous=await env.NEKOSAGASI_LAYOUT.get("shared-layout","json");
     if(previous)await env.NEKOSAGASI_LAYOUT.put("shared-layout-backup",JSON.stringify({savedAt:new Date().toISOString(),layout:previous}));
     layout.npcDefinitions[id]=npc;
+    await env.NEKOSAGASI_LAYOUT.put("shared-layout",JSON.stringify(layout));
+    return new Response(JSON.stringify({ok:true,id}),{headers});
+  }
+  if(body?.action==="delete-event-npc"){
+    const id=String(body?.id||"");
+    if(!/^event-[\w-]{8,160}$/.test(id))return new Response(JSON.stringify({error:"invalid event npc id"}),{status:400,headers});
+    const layout=await env.NEKOSAGASI_LAYOUT.get("shared-layout","json")||{},previous=structuredClone(layout);
+    delete layout.npcDefinitions?.[id];
+    for(const field of ["objects","placedObjects"])if(Array.isArray(layout[field]))layout[field]=layout[field].filter(item=>!(item?.kind==="npc"&&item.npc===id));
+    if(previous)await env.NEKOSAGASI_LAYOUT.put("shared-layout-backup",JSON.stringify({savedAt:new Date().toISOString(),layout:previous}));
     await env.NEKOSAGASI_LAYOUT.put("shared-layout",JSON.stringify(layout));
     return new Response(JSON.stringify({ok:true,id}),{headers});
   }

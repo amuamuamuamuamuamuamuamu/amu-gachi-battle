@@ -1,9 +1,9 @@
 /* イベントを親にしたNPC登録ツール。保存形式は従来の npcDefinitions と互換。 */
 (()=>{
- const key='nekosagasi-layout-v1',types=[['words','言葉を作る','言葉おじさん'],['normal','通常会話','会話おじさん'],['item','物を渡す','渡すおじさん'],['ultimate','究極の2択','２択おじさん'],['survey','多数派','多数派おじさん'],['quiz','クイズ','クイズおじさん'],['cardbattle','カードバトル','カードバトルNPC'],['warashibe','わらしべ長者','わらしべおじさん']],assets=typeof GAME_DATA!=='undefined'?(GAME_DATA.assets||{}):{},profiles=assets.npcs||[],items=[...new Set([...(assets.items||[]),'ちょっと臭い水道水'])].map(name=>name+'.png'),arts=Array.from({length:38},(_,i)=>String(i+1).padStart(3,'0'));
+ const key='nekosagasi-layout-v1',types=[['words','言葉を作る','言葉おじさん'],['normal','通常会話','会話おじさん'],['item','物を渡す','渡すおじさん'],['ultimate','究極の2択','２択おじさん'],['survey','多数派','多数派おじさん'],['quiz','クイズ','クイズおじさん'],['cardbattle','カードバトル','カードバトルNPC'],['warashibe','わらしべ長者','わらしべおじさん']],assets=typeof GAME_DATA!=='undefined'?(GAME_DATA.assets||{}):{},profiles=assets.npcs||[],items=[...new Set([...(assets.items||[]),'ちょっと臭い水道水'])].map(name=>name+'.png'),arts=typeof eventArtCodes!=='undefined'?eventArtCodes:Array.from({length:57},(_,i)=>String(i+1).padStart(3,'0'));
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const read=()=>{try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return {}}};
- const save=data=>{localStorage.setItem(key,JSON.stringify(data));return fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)}).catch(()=>null)};
+ const save=data=>{localStorage.setItem(key,JSON.stringify(data));return fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)}).catch(()=>null)},saveNpc=(id,npc)=>fetch('/api/layout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'upsert-event-npc',id,npc})}).catch(()=>null),deleteNpc=id=>fetch('/api/layout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'delete-event-npc',id})}).catch(()=>null);
  const typeName=t=>types.find(x=>x[0]===t)?.[1]||types[0][1],shortType=t=>({words:'言葉',normal:'会話',item:'渡す',ultimate:'２択',survey:'多数派',quiz:'クイズ',cardbattle:'カード',warashibe:'わらしべ'}[t]||'言葉'),autoName=(t,profileId)=>shortType(t)+(profiles[Number(String(profileId||'npc01').slice(3))-1]||'NPC'),savedRanks=()=>{try{return JSON.parse(localStorage.getItem('nekosagasi-item-ranks-v1')||'{}')}catch{return{}}},itemRank=item=>savedRanks()[String(item||'').replace(/\.png$/,'')]||assets.itemRanks?.[String(item||'').replace(/\.png$/,'')]||1,emptyOutcome=()=>({item:'',card:'',building:'',buildingMode:'show',npc:'',npcMode:'show'});
  const normalizeEventNpcNames=data=>Object.values(data.npcDefinitions||{}).forEach(d=>{if(d?.profileId&&!String(d.eventNpcName||'').trim())d.eventNpcName=autoName(d.eventType||'words',d.profileId)});
  const migrate=data=>{data.npcDefinitions??={};if(data.eventNpcEditorV2||Object.keys(data.npcDefinitions).some(id=>id.startsWith('event-'))){normalizeEventNpcNames(data);data.eventNpcEditorV2=1;return}Object.entries(data.npcDefinitions).filter(([id,d])=>/^npc\d+$/.test(id)&&d&&Object.keys(d).length).forEach(([id,d])=>{const copy=structuredClone(d),type=copy.eventType||'words';copy.profileId=copy.profileId||id;copy.eventNpcName=copy.eventNpcName||typeName(type)+profiles[Number(id.slice(3))-1]||typeName(type);copy.eventType=type;data.npcDefinitions['event-'+crypto.randomUUID()]=copy});normalizeEventNpcNames(data);data.eventNpcEditorV2=1};
@@ -21,7 +21,7 @@
  const quiz=d=>{const all=d.quizzes||[],shown=all.slice(0,12);return '<p class="event-list-note">クイズは最初の12問を表示しています。残りの問題は保持されたままです。</p><section class="event-sublist">'+shown.map((x,i)=>'<article class="event-subcard" data-quiz="'+i+'"><button type="button" class="event-remove">×</button><label>問題 <textarea data-f="question">'+esc(x.question||'')+'</textarea></label><label>答えA <input data-a="0" value="'+esc(x.choices?.[0]||'')+'"></label><label>答えB <input data-a="1" value="'+esc(x.choices?.[1]||'')+'"></label><label>正解 <select data-f="answer"><option value="0" '+(Number(x.answer||0)===0?'selected':'')+'>答えA</option><option value="1" '+(Number(x.answer)===1?'selected':'')+'>答えB</option></select></label><b>正解だった場合</b>'+outcomeHtml(x.correctOutcome)+'</article>').join('')+'</section><button type="button" data-add="quiz">＋ クイズを追加</button>'};
  const normal=d=>{const talk=d.normalTalk||{},initial=talk.initial||{message:talk.message||'こんにちは！',afterMessage:talk.afterMessage||'',rewardOnce:Boolean(talk.rewardOnce),repeatMessage:talk.repeatMessage||'',outcome:talk.outcome||emptyOutcome(),setScenarioId:talk.setScenarioId||'',setScenarioNodeId:talk.setScenarioNodeId||''},conditions=talk.conditions||[];const conversation=(entry,kind,index)=>'<article class="event-subcard" data-normal-'+kind+(index===undefined?'':'="'+index+'"')+'><b>'+ (kind==='initial'?'最初の会話':'フラグ会話 '+(index+1)) +'</b>'+(kind==='condition'?'<label>フラグのシナリオ <select data-condition-scenario>'+scenarioOptions(entry.scenarioId||'')+'</select></label><label>フラグのフロー <select data-condition-flow>'+scenarioNodeOptions(entry.scenarioId||'',entry.scenarioNodeId||'')+'</select></label>':'')+'<label>話す言葉 <textarea data-talk="message" placeholder="NPCをタップした時に表示する言葉">'+esc(entry.message||'こんにちは！')+'</textarea></label><label>会話後の言葉（任意） <textarea data-talk="afterMessage" placeholder="例：これ、あげるよ">'+esc(entry.afterMessage||'')+'</textarea></label><label><input type="checkbox" data-talk="rewardOnce" '+(entry.rewardOnce?'checked':'')+'> 起きることは一度だけ</label><label>一度実行後に話す言葉 <textarea data-talk="repeatMessage" placeholder="空欄なら話す言葉を繰り返します">'+esc(entry.repeatMessage||'')+'</textarea></label>'+normalOutcomeHtml(entry)+(kind==='condition'?'<button type="button" class="event-remove">× このフラグ会話を削除</button>':'')+'</article>';return '<section class="event-sublist normal-conversations">'+conversation(initial,'initial')+conditions.map((entry,index)=>conversation(entry,'condition',index)).join('')+'</section><button type="button" data-add="normal-condition">＋ フラグ会話を追加</button>'};
  const warashibeCommon=d=>'<label>NPCを選択 <select name="profileId" class="event-profile">'+profilesOptions(d.profileId||'')+'</select><img class="event-profile-preview" src="'+(d.profileId?'npc-light/'+d.profileId+'.png':'')+'" alt="NPC見た目" '+(d.profileId?'':'hidden')+'></label><input type="hidden" name="eventNpcName" value="'+(d.profileId?esc(autoName('warashibe',d.profileId)):'')+'"><p>アイテム交換専用です。建築・NPC表示などの「起きること」はありません。</p>';
- const warashibe=d=>{const trade=d.warashibe||{},options='<option value="">なし</option>'+items.map(item=>'<option value="'+item+'" '+(trade.offerItem===item?'selected':'')+'>'+esc(item.replace('.png',''))+'（ランク '+itemRank(item)+'）</option>').join('');return '<label>最初の言葉 <textarea name="warashibeFirstMessage" placeholder="例：いいものと交換しないか？">'+esc(d.firstMessage||'')+'</textarea></label><label>交換後の言葉 <textarea name="warashibeAfterMessage" placeholder="交換成立後に表示します">'+esc(d.afterMessage||'')+'</textarea></label><label>交換をキャンセルした時の言葉 <textarea name="warashibeCancelMessage" placeholder="交換しないを押した時に表示します">'+esc(d.cancelMessage||'')+'</textarea></label><label>クールタイム中の言葉 <textarea name="warashibeCooldownMessage" placeholder="交換後のクールタイム中に表示します">'+esc(d.cooldownMessage||'')+'</textarea></label><label>相手が出してくるアイテム <select name="offerItem">'+options+'</select></label><p>成立したら、このアイテムを受け取ります。プレイヤーの所持品から、相手のアイテムより1ランク低い以上のものが自動で候補になります。成立率は70％です。</p>'};
+ const warashibe=d=>{const trade=d.warashibe||{},options='<option value="">なし</option>'+items.map(item=>'<option value="'+item+'" '+(trade.offerItem===item?'selected':'')+'>'+esc(item.replace('.png',''))+'</option>').join('');return '<label>最初の言葉 <textarea name="warashibeFirstMessage" placeholder="例：いいものと交換しないか？">'+esc(d.firstMessage||'')+'</textarea></label><label>交換後の言葉 <textarea name="warashibeAfterMessage" placeholder="交換成立後に表示します">'+esc(d.afterMessage||'')+'</textarea></label><label>交換をキャンセルした時の言葉 <textarea name="warashibeCancelMessage" placeholder="交換しないを押した時に表示します">'+esc(d.cancelMessage||'')+'</textarea></label><label>クールタイム中の言葉 <textarea name="warashibeCooldownMessage" placeholder="交換後のクールタイム中に表示します">'+esc(d.cooldownMessage||'')+'</textarea></label><label>相手が出してくるアイテム <select name="offerItem">'+options+'</select></label><p>成立したら、このアイテムを受け取ります。プレイヤーの所持品から、相手のアイテムより1ランク低い以上のものが自動で候補になります。成立率は70％です。</p>'};
  const cardBattle=d=>{const set=d.cardBattleSets?.[0]||d;return '<label>NPCが勝った時の言葉 <textarea name="npcWinMessage">'+esc(set.npcWinMessage||'')+'</textarea></label><label>NPCが負けた時の言葉 <textarea name="npcLoseMessage">'+esc(set.npcLoseMessage||'')+'</textarea></label>'+outcomeHtml(set.outcome)};
  const cardBattleCommon=d=>{const behavior=d.afterEventAction==='cooldown'?(d.cooldownCondition==='npc-events-4'?'cooldown-4':d.cooldownCondition==='time-5m'?'cooldown-5m':'cooldown-2'):'remove';return '<label>登録するNPC <select name="profileId" class="event-profile">'+profilesOptions(d.profileId||'')+'</select><img class="event-profile-preview" src="'+(d.profileId?'npc-light/'+d.profileId+'.png':'')+'" alt="NPC見た目" '+(d.profileId?'':'hidden')+'></label><input type="hidden" name="eventNpcName" value="'+(d.profileId?esc(autoName('cardbattle',d.profileId)):'')+'"><label>イベント終了時の挙動 <select name="afterEventAction"><option value="remove" '+(behavior==='remove'?'selected':'')+'>消滅</option><option value="cooldown-2" '+(behavior==='cooldown-2'?'selected':'')+'>クールタイム2回</option><option value="cooldown-4" '+(behavior==='cooldown-4'?'selected':'')+'>クールタイム4回</option><option value="cooldown-5m" '+(behavior==='cooldown-5m'?'selected':'')+'>5分</option></select></label><label>クールタイム中の言葉 <textarea name="cooldownMessage" placeholder="クールタイム中に話しかけると表示します">'+esc(d.cooldownMessage||'')+'</textarea></label><label>最初の言葉 <textarea name="firstMessage">'+esc(d.cardBattleSets?.[0]?.firstMessage??d.firstMessage??'')+'</textarea></label>'};
  const body=(type,d)=>type==='words'?words(d):type==='normal'?normal(d):type==='item'?itemsForm(d):type==='ultimate'?ultimate(d):type==='survey'?survey(d):type==='quiz'?quiz(d):type==='warashibe'?warashibe(d):cardBattle(d);
@@ -31,8 +31,97 @@
  const parse=form=>{const d=structuredClone(editing?read().npcDefinitions[editing]:draft||blank(active));d.eventType=active;if(active==='normal'){d.profileId=form.elements.profileId.value;d.eventNpcName=form.elements.eventNpcName.value;d.firstMessage='';const parseTalk=card=>({message:card.querySelector('[data-talk="message"]').value,afterMessage:card.querySelector('[data-talk="afterMessage"]').value,rewardOnce:card.querySelector('[data-talk="rewardOnce"]').checked,repeatMessage:card.querySelector('[data-talk="repeatMessage"]').value,outcome:parseOutcome(card.querySelector('.event-outcome')),setScenarioId:card.querySelector('[data-set-scenario]')?.value||'',setScenarioNodeId:card.querySelector('[data-set-flow]')?.value||''}),initial=parseTalk(form.querySelector('[data-normal-initial]')),conditions=[...form.querySelectorAll('[data-normal-condition]')].map(card=>({...parseTalk(card),scenarioId:card.querySelector('[data-condition-scenario]').value,scenarioNodeId:card.querySelector('[data-condition-flow]').value}));d.normalTalk={initial,conditions};return d}if(active==='cardbattle'){['profileId','eventNpcName','firstMessage','cooldownMessage'].forEach(k=>d[k]=form.elements[k].value);const behavior=form.elements.afterEventAction.value;d.afterEventAction=behavior==='remove'?'remove':'cooldown';d.cooldownCondition=behavior==='cooldown-4'?'npc-events-4':behavior==='cooldown-5m'?'time-5m':'npc-events-2';d.npcWinMessage=form.elements.npcWinMessage.value;d.npcLoseMessage=form.elements.npcLoseMessage.value;d.cardBattleSets=[{npc:d.profileId,firstMessage:d.firstMessage,npcWinMessage:d.npcWinMessage,npcLoseMessage:d.npcLoseMessage,outcome:parseOutcome(form.querySelector('.event-outcome'))}];return d}['profileId','eventNpcName','firstMessage','cooldownMessage'].forEach(k=>d[k]=form.elements[k].value);const behavior=form.elements.afterEventAction.value;d.afterEventAction=behavior==='remove'?'remove':'cooldown';d.cooldownCondition=behavior==='cooldown-4'?'npc-events-4':behavior==='cooldown-5m'?'time-5m':'npc-events-2';if(active==='words'){if(!d.firstMessage.trim())d.firstMessage='こんにちは！';d.word1=form.elements.word1.value.split(/\n|、/).map(x=>x.trim()).filter(Boolean);d.word2=form.elements.word2.value.split(/\n|、/).map(x=>x.trim()).filter(Boolean);d.events={};form.querySelectorAll('[data-word]').forEach(c=>{const event=parseOutcome(c.querySelector('.event-outcome'));event.art=c.querySelector('[data-word-art]')?.value||'';d.events[c.dataset.word]=event})}else if(active==='item')d.itemRegistrations=[...form.querySelectorAll('[data-item]')].map(c=>({requiredItem:c.querySelector('[data-f="requiredItem"]').value,itemArt:c.querySelector('[data-f="itemArt"]').value,receiveMessage:c.querySelector('[data-f="receiveMessage"]').value,outcome:parseOutcome(c.querySelector('.event-outcome'))}));else if(active==='ultimate')d.ultimates=[...form.querySelectorAll('[data-ultimate]')].map(c=>({id:'ultimate-'+crypto.randomUUID(),question:c.querySelector('[data-f="question"]').value,questionArt:c.querySelector('[data-f="questionArt"]').value,choices:[c.querySelector('[data-a="0"]').value,c.querySelector('[data-a="1"]').value],resultArts:[c.querySelector('[data-ra="0"]').value,c.querySelector('[data-ra="1"]').value],resultTexts:[c.querySelector('[data-rt="0"]').value,c.querySelector('[data-rt="1"]').value],outcomes:[parseOutcome(c.querySelector('.outcome-a')),parseOutcome(c.querySelector('.outcome-b'))]}));else if(active==='survey')d.surveys=[...form.querySelectorAll('[data-survey]')].map(c=>({id:'survey-'+crypto.randomUUID(),imageFile:c.querySelector('[data-f="imageFile"]').value,subject:c.querySelector('[data-f="subject"]').value,question:c.querySelector('[data-f="question"]').value,choices:[c.querySelector('[data-a="0"]').value,c.querySelector('[data-a="1"]').value],majorityOutcome:parseOutcome(c.querySelector('.event-outcome'))}));else d.quizzes=[...form.querySelectorAll('[data-quiz]')].map(c=>({question:c.querySelector('[data-f="question"]').value,choices:[c.querySelector('[data-a="0"]').value,c.querySelector('[data-a="1"]').value],answer:Number(c.querySelector('[data-f="answer"]').value),correctOutcome:parseOutcome(c.querySelector('.event-outcome'))}));return d};
  const mount=()=>{const workspace=document.querySelector('#npcEventWorkspace'),editor=document.querySelector('.npc-editor');if(!workspace||!editor)return;if(workspace.dataset.eventEditor&&workspace.querySelector('.event-npc-editor-v2'))return;workspace.dataset.eventEditor='1';const data=read();migrate(data);localStorage.setItem(key,JSON.stringify(data));const requested=new URLSearchParams(location.search).get('eventEdit')||sessionStorage.getItem('nekosagasi-event-edit');if(requested&&data.npcDefinitions?.[requested]){editing=requested;active=data.npcDefinitions[requested].eventType||'words';draft=null;sessionStorage.removeItem('nekosagasi-event-edit')}document.querySelector('#npcEventPicker')?.closest('label')?.setAttribute('hidden','');workspace.replaceChildren();const root=document.createElement('div');root.className='event-npc-editor-v2';workspace.append(root);
  const render=()=>{const data=read(),entries=Object.entries(data.npcDefinitions||{}).filter(([id,d])=>id.startsWith('event-')&&(d.eventType||'words')===active),current=editing?data.npcDefinitions[editing]:draft||blank(active);root.innerHTML='<nav class="event-type-tabs">'+types.map(([id,title])=>'<button type="button" data-type="'+id+'" '+(id===active?'class="active"':'')+'>'+title+'</button>').join('')+'</nav><h2>'+typeName(active)+'</h2><form class="event-npc-form"><h3>'+(editing?'登録内容を編集':'新しいNPCを登録')+'</h3>'+(active==='cardbattle'?cardBattleCommon(current):active==='normal'?normalCommon(current):active==='warashibe'?warashibeCommon(current):common(current))+body(active,current)+'<div><button type="button" class="event-save">'+(editing?'保存する':'登録する')+'</button><button type="button" class="event-cancel">入力を消す</button></div></form><section class="event-npc-saved"><h3>登録済み（'+esc(typeName(active))+'） '+entries.length+'件</h3>'+entries.map(([id,d])=>'<article><img src="npc-light/'+(d.profileId||'npc02')+'.png" alt=""><b>'+esc(d.eventNpcName||typeName(active))+'</b><button type="button" data-edit="'+id+'">編集</button><button type="button" data-delete="'+id+'">×</button></article>').join('')+'</section>';};
- root.addEventListener('change',e=>{if(e.target.name==='profileId'){const img=root.querySelector('.event-profile-preview');if(img)img.src='npc-light/'+e.target.value+'.png'}});root.addEventListener('click',async e=>{const t=e.target.dataset.type;if(t){active=t;editing=null;draft=null;render();return}const form=root.querySelector('form');if(e.target.classList.contains('event-save')){const data=read(),d=parse(form);if(!d.profileId){alert('NPCを選択してください');return}if(active==='item'&&!d.itemRegistrations.some(entry=>entry.requiredItem)){alert('「受け取るもの」を1つ選んでください');return}const requestedId=new URLSearchParams(location.search).get('eventEdit'),id=editing||(requestedId&&data.npcDefinitions?.[requestedId]?requestedId:null)||'event-'+crypto.randomUUID();data.npcDefinitions??={};data.npcDefinitions[id]=d;const response=await save(data);if(!response?.ok){alert('保存できませんでした。通信を確認してもう一度試してください');return}editing=id;draft=null;render();window.showSaveSuccess?.();return}if(e.target.classList.contains('event-cancel')){editing=null;draft=null;render();return}const edit=e.target.dataset.edit;if(edit){editing=edit;render();return}const del=e.target.dataset.delete;if(del){const data=read();delete data.npcDefinitions[del];await save(data);if(editing===del)editing=null;render();return}const add=e.target.dataset.add;if(add){draft=parse(form);if(add==='item')draft.itemRegistrations.push({requiredItem:'',itemArt:'',receiveMessage:'',outcome:emptyOutcome()});if(add==='ultimate')draft.ultimates.push({question:'',questionArt:'',choices:['',''],resultArts:['',''],resultTexts:['',''],outcomes:[emptyOutcome(),emptyOutcome()]});if(add==='survey')draft.surveys.push({subject:'',question:'',choices:['',''],majorityOutcome:emptyOutcome()});if(add==='quiz')draft.quizzes.push({question:'',choices:['',''],answer:0,correctOutcome:emptyOutcome()});editing=null;render();return}if(e.target.classList.contains('event-remove')){draft=parse(form);const card=e.target.closest('[data-item],[data-ultimate],[data-survey],[data-quiz]');if(card.dataset.item!==undefined)draft.itemRegistrations.splice(Number(card.dataset.item),1);if(card.dataset.ultimate!==undefined)draft.ultimates.splice(Number(card.dataset.ultimate),1);if(card.dataset.survey!==undefined)draft.surveys.splice(Number(card.dataset.survey),1);if(card.dataset.quiz!==undefined)draft.quizzes.splice(Number(card.dataset.quiz),1);editing=null;render()}});render()};
+ root.addEventListener('change',e=>{if(e.target.name==='profileId'){const img=root.querySelector('.event-profile-preview');if(img)img.src='npc-light/'+e.target.value+'.png'}});root.addEventListener('click',async e=>{const t=e.target.dataset.type;if(t){active=t;editing=null;draft=null;render();return}const form=root.querySelector('form');if(e.target.classList.contains('event-save')){const data=read(),d=parse(form);if(!d.profileId){alert('NPCを選択してください');return}if(active==='item'&&!d.itemRegistrations.some(entry=>entry.requiredItem)){alert('「受け取るもの」を1つ選んでください');return}const requestedId=new URLSearchParams(location.search).get('eventEdit'),id=editing||(requestedId&&data.npcDefinitions?.[requestedId]?requestedId:null)||'event-'+crypto.randomUUID();const response=await saveNpc(id,d);if(!response?.ok){alert('保存できませんでした。通信を確認してもう一度試してください');return}data.npcDefinitions??={};data.npcDefinitions[id]=d;localStorage.setItem(key,JSON.stringify(data));editing=id;draft=null;render();window.showSaveSuccess?.();return}if(e.target.classList.contains('event-cancel')){editing=null;draft=null;render();return}const edit=e.target.dataset.edit;if(edit){editing=edit;render();return}const del=e.target.dataset.delete;if(del){const response=await deleteNpc(del);if(!response?.ok){alert('削除できませんでした。通信を確認してもう一度試してください');return}const data=read();delete data.npcDefinitions?.[del];localStorage.setItem(key,JSON.stringify(data));if(editing===del)editing=null;render();return}const add=e.target.dataset.add;if(add){draft=parse(form);if(add==='item')draft.itemRegistrations.push({requiredItem:'',itemArt:'',receiveMessage:'',outcome:emptyOutcome()});if(add==='ultimate')draft.ultimates.push({question:'',questionArt:'',choices:['',''],resultArts:['',''],resultTexts:['',''],outcomes:[emptyOutcome(),emptyOutcome()]});if(add==='survey')draft.surveys.push({subject:'',question:'',choices:['',''],majorityOutcome:emptyOutcome()});if(add==='quiz')draft.quizzes.push({question:'',choices:['',''],answer:0,correctOutcome:emptyOutcome()});editing=null;render();return}if(e.target.classList.contains('event-remove')){draft=parse(form);const card=e.target.closest('[data-item],[data-ultimate],[data-survey],[data-quiz]');if(card.dataset.item!==undefined)draft.itemRegistrations.splice(Number(card.dataset.item),1);if(card.dataset.ultimate!==undefined)draft.ultimates.splice(Number(card.dataset.ultimate),1);if(card.dataset.survey!==undefined)draft.surveys.splice(Number(card.dataset.survey),1);if(card.dataset.quiz!==undefined)draft.quizzes.splice(Number(card.dataset.quiz),1);editing=null;render()}});render()};
  new MutationObserver(mount).observe(document.documentElement,{childList:true,subtree:true});setInterval(mount,500);document.addEventListener('change',event=>{const select=event.target.closest?.('.event-npc-editor-v2 select[name="profileId"]');if(!select)return;const root=select.closest('.event-npc-editor-v2'),type=root.querySelector('.event-type-tabs .active')?.dataset.type||'words',name=select.value?autoName(type,select.value):'',image=root.querySelector('.event-profile-preview');root.querySelector('[name="eventNpcName"]').value=name;if(image){image.hidden=!select.value;image.src=select.value?'npc-light/'+select.value+'.png':''}});
+})();
+
+// 言葉を作るNPCも1件ずつ共有レイアウトへ保存する。
+// 編集中のIDを保持し、保存直後にサーバーの確定データを読み戻すことで、
+// 別画面や古いローカルデータによって登録内容が消えるのを防ぐ。
+(()=>{
+ if(window.__wordNpcAtomicSaveInstalled)return;
+ window.__wordNpcAtomicSaveInstalled=true;
+ const layoutKey='nekosagasi-layout-v1';
+ // 言葉NPCの入口は常に新規登録。URLに古い編集IDが残っていても、その内容をフォームへ出さない。
+ const entryUrl=new URL(location.href),entryId=entryUrl.searchParams.get('eventEdit');
+ let isWordEntry=false;try{isWordEntry=JSON.parse(localStorage.getItem(layoutKey)||'{}').npcDefinitions?.[entryId]?.eventType==='words'}catch{}
+ if(isWordEntry){entryUrl.searchParams.delete('eventEdit');history.replaceState(null,'',entryUrl)}
+ const currentEditId=root=>{
+  if(root?.dataset.newEntry==='1')return '';
+  const fromRoot=root?.dataset.editingId;
+  const fromUrl=new URLSearchParams(location.search).get('eventEdit');
+  return /^event-[\w-]{8,160}$/.test(fromRoot||'')?fromRoot:/^event-[\w-]{8,160}$/.test(fromUrl||'')?fromUrl:'';
+ };
+ // 元のエディタは編集IDをクロージャ内だけに持つため、単体保存処理でも引き継ぐ。
+ document.addEventListener('click',event=>{
+  const root=event.target.closest?.('.event-npc-editor-v2');
+  if(!root)return;
+  const edit=event.target.closest?.('[data-edit]')?.dataset.edit;
+  if(edit){root.dataset.editingId=edit;delete root.dataset.newEntry}
+  if(event.target.closest?.('[data-type],.event-cancel')){delete root.dataset.editingId;root.dataset.newEntry='1'}
+ },true);
+ document.addEventListener('click',async event=>{
+  const save=event.target.closest?.('.event-npc-editor-v2 .event-save'),root=save?.closest('.event-npc-editor-v2');
+  if(!save||root?.querySelector('.event-type-tabs .active')?.dataset.type!=='words')return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const form=save.closest('.event-npc-form'),profileId=form?.elements.profileId?.value;
+  if(!profileId){alert('NPCを選択してください');return}
+  const words=value=>String(value||'').split(/\n|、/).map(word=>word.trim()).filter(Boolean);
+  const word1=words(form.elements.word1?.value),word2=words(form.elements.word2?.value);
+  if(!word1.length||!word2.length){alert('言葉1と言葉2をそれぞれ1つ以上入力してください');return}
+  const behavior=form.elements.afterEventAction?.value||'remove',events={};
+  form.querySelectorAll('[data-word]').forEach(card=>{
+   const outcome=Object.fromEntries([...card.querySelectorAll('.event-outcome [data-o]')].map(input=>[input.dataset.o,input.value]));
+   outcome.art=card.querySelector('[data-word-art]')?.value||'';
+   events[card.dataset.word]=outcome;
+  });
+  const selectedName=form.elements.profileId?.selectedOptions?.[0]?.textContent?.trim()||'NPC';
+  const npc={
+   eventType:'words',profileId,eventNpcName:form.elements.eventNpcName?.value||'言葉'+selectedName,
+   firstMessage:form.elements.firstMessage?.value?.trim()||'こんにちは！',
+   afterEventAction:behavior==='remove'?'remove':'cooldown',
+   cooldownCondition:behavior==='cooldown-4'?'npc-events-4':behavior==='cooldown-5m'?'time-5m':'npc-events-2',
+   cooldownMessage:form.elements.cooldownMessage?.value||'',word1,word2,events
+  };
+  const id=currentEditId(root)||'event-'+crypto.randomUUID();
+  save.disabled=true;
+  try{
+   let localLayout={};try{localLayout=JSON.parse(localStorage.getItem(layoutKey)||'{}')}catch{}
+   localLayout.npcDefinitions??={};
+   localLayout.npcDefinitions[id]=npc;
+   const payload=JSON.stringify({action:'upsert-event-npc',id,npc});
+   let response;
+   // 画像選択の直後など一時的な通信失敗でも、単体保存を再試行する。
+   for(let attempt=0;attempt<3;attempt++){
+    try{response=await fetch('/api/layout',{method:'POST',headers:{'content-type':'application/json'},body:payload})}catch{response=null}
+    if(response?.ok)break;
+    await new Promise(resolve=>setTimeout(resolve,250*(attempt+1)));
+   }
+   // 単体保存が使えない状態でも、同じ内容を全体保存で保全する。
+   if(!response?.ok){try{response=await fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(localLayout)})}catch{response=null}}
+   if(!response?.ok)throw new Error('save failed');
+   // KV は直後の GET で古い値を返すことがある。成功応答を確定として、
+   // 今回保存した1件だけをローカルの一覧へ反映する。
+   localStorage.setItem(layoutKey,JSON.stringify(localLayout));
+   root.dataset.editingId=id;
+   delete root.dataset.newEntry;
+   window.showSaveSuccess?.();
+   // 保存後は登録済み一覧を再読込して、新規登録用の空フォームへ戻す。
+   location.reload();
+  }catch(error){
+   console.error(error);alert('保存できませんでした。通信を確認してもう一度試してください');
+  }finally{save.disabled=false}
+ },true);
+ // 新規フォームでは初期文言も表示せず、すぐ入力できる状態にする。
+ const clearNewWordForm=()=>document.querySelectorAll('.event-npc-editor-v2').forEach(root=>{
+  if(root.querySelector('.event-type-tabs .active')?.dataset.type!=='words')return;
+  const form=root.querySelector('.event-npc-form');
+  if(!form||form.dataset.blankWordForm||form.querySelector('h3')?.textContent!=='新しいNPCを登録')return;
+  ['firstMessage','word1','word2'].forEach(name=>{if(form.elements[name])form.elements[name].value=''});
+  form.dataset.blankWordForm='1';
+ });
+ new MutationObserver(clearNewWordForm).observe(document.documentElement,{childList:true,subtree:true});
+ clearNewWordForm();
 })();
 
 // 「物を渡す」NPCは、レイアウト全体ではなく登録する1件だけを共有データへ保存する。
@@ -51,13 +140,37 @@
   if(!itemRegistrations.some(entry=>entry.requiredItem)){alert('「受け取るもの」を1つ選んでください');return}
   const requestedId=new URLSearchParams(location.search).get('eventEdit'),id=requestedId?.startsWith('event-')?requestedId:'event-'+crypto.randomUUID(),behavior=form.elements.afterEventAction?.value||'remove',npc={eventType:'item',profileId,eventNpcName:form.elements.eventNpcName?.value||'渡す'+(form.elements.profileId?.selectedOptions?.[0]?.textContent||'NPC'),firstMessage:form.elements.firstMessage?.value||'',afterEventAction:behavior==='remove'?'remove':'cooldown',cooldownCondition:behavior==='cooldown-4'?'npc-events-4':behavior==='cooldown-5m'?'time-5m':'npc-events-2',cooldownMessage:form.elements.cooldownMessage?.value||'',itemRegistrations};
   try{
-   const response=await fetch('/api/layout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'upsert-event-npc',id,npc})});
+   let response=await fetch('/api/layout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'upsert-event-npc',id,npc})});
+   if(!response.ok){const latest=await fetch('/api/layout',{cache:'no-store'}).then(result=>result.ok?result.json():null),fallback=latest?.layout||{};fallback.npcDefinitions??={};fallback.npcDefinitions[id]=npc;response=await fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(fallback)})}
    if(!response.ok)throw new Error('save failed');
    const latest=await fetch('/api/layout',{cache:'no-store'}).then(result=>result.ok?result.json():null);
    if(!latest?.layout?.npcDefinitions?.[id])throw new Error('verification failed');
    localStorage.setItem(layoutKey,JSON.stringify(latest.layout));window.showSaveSuccess?.();
    setTimeout(()=>{const url=new URL(location.href);url.searchParams.set('eventEdit',id);location.href=url.toString()},180);
   }catch{alert('保存できませんでした。通信を確認してもう一度試してください')}
+ },true);
+})();
+
+// カードバトルは専用の単体保存を使う。ほかのNPC定義や古い画面の保存状態に影響されない。
+(()=>{
+ if(window.__cardBattleNpcAtomicSaveInstalled)return;
+ window.__cardBattleNpcAtomicSaveInstalled=true;
+ document.addEventListener('click',async event=>{
+  const save=event.target.closest?.('.event-npc-editor-v2 .event-save'),root=save?.closest('.event-npc-editor-v2');
+  if(!save||root?.querySelector('.event-type-tabs .active')?.dataset.type!=='cardbattle')return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const form=save.closest('.event-npc-form'),profileId=form?.elements.profileId?.value;
+  if(!profileId){alert('登録するNPCを選択してください');return}
+  const behavior=form.elements.afterEventAction?.value||'remove',outcome=Object.fromEntries([...form.querySelectorAll('.event-outcome [data-o]')].map(input=>[input.dataset.o,input.value]));
+  const requestedId=new URLSearchParams(location.search).get('eventEdit'),id=requestedId?.startsWith('event-')?requestedId:'event-'+crypto.randomUUID(),npc={eventType:'cardbattle',profileId,eventNpcName:form.elements.eventNpcName?.value||'カード'+(form.elements.profileId?.selectedOptions?.[0]?.textContent||'NPC'),firstMessage:form.elements.firstMessage?.value||'',afterEventAction:behavior==='remove'?'remove':'cooldown',cooldownCondition:behavior==='cooldown-4'?'npc-events-4':behavior==='cooldown-5m'?'time-5m':'npc-events-2',cooldownMessage:form.elements.cooldownMessage?.value||'',cardBattleSets:[{npc:profileId,firstMessage:form.elements.firstMessage?.value||'',npcWinMessage:form.elements.npcWinMessage?.value||'',npcLoseMessage:form.elements.npcLoseMessage?.value||'',outcome}]};
+  try{
+   const response=await fetch('/api/layout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'upsert-event-npc',id,npc})});
+   if(!response.ok)throw new Error('save failed');
+   const latest=await fetch('/api/layout',{cache:'no-store'}).then(result=>result.ok?result.json():null);
+   if(!latest?.layout?.npcDefinitions?.[id])throw new Error('verification failed');
+   localStorage.setItem('nekosagasi-layout-v1',JSON.stringify(latest.layout));window.showSaveSuccess?.();
+   setTimeout(()=>{const url=new URL(location.href);url.searchParams.set('eventEdit',id);location.href=url.toString()},180);
+  }catch{alert('カードバトルNPCを保存できませんでした。通信を確認してもう一度試してください')}
  },true);
 })();
 
@@ -74,7 +187,7 @@
    const data=(()=>{try{return JSON.parse(localStorage.getItem('nekosagasi-layout-v1')||'{}')}catch{return{}}})();data.npcDefinitions??={};
    const profileIndex=Number(String(profileId).slice(3))-1,name=(GAME_DATA.assets.npcs||[])[profileIndex]||'NPC',isEditing=save.textContent.trim()==='保存する',edit=isEditing?(root.dataset.editingId||new URLSearchParams(location.search).get('eventEdit')):'',id=edit&&data.npcDefinitions[edit]?edit:'event-'+crypto.randomUUID();
    data.npcDefinitions[id]={...(data.npcDefinitions[id]||{}),eventType:'warashibe',profileId,eventNpcName:'わらしべ'+name,firstMessage:form.elements.warashibeFirstMessage.value,afterMessage:form.elements.warashibeAfterMessage.value,cancelMessage:form.elements.warashibeCancelMessage.value,afterEventAction:'cooldown',cooldownCondition:'time-5m',cooldownMessage:form.elements.warashibeCooldownMessage.value,warashibe:{offerItem:form.elements.offerItem.value}};
-   localStorage.setItem('nekosagasi-layout-v1',JSON.stringify(data));const response=await fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)});if(!response.ok){alert('保存できませんでした');return}root.dataset.editingId=id;window.showSaveSuccess?.();setTimeout(()=>{const url=new URL(location.href);url.searchParams.set('eventEdit',id);location.href=url.toString()},300);
+    localStorage.setItem('nekosagasi-layout-v1',JSON.stringify(data));const response=await fetch('/api/layout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'upsert-event-npc',id,npc:data.npcDefinitions[id]})});if(!response.ok){alert('保存できませんでした');return}root.dataset.editingId=id;window.showSaveSuccess?.();setTimeout(()=>{const url=new URL(location.href);url.searchParams.set('eventEdit',id);location.href=url.toString()},300);
  },true);
 })();
 
@@ -90,7 +203,7 @@ window.addEventListener('click',async event=>{
   const data=JSON.parse(localStorage.getItem('nekosagasi-layout-v1')||'{}');data.npcDefinitions??={};
   const profileIndex=Number(String(profileId).slice(3))-1,name=(window.GAME_DATA?.assets?.npcs||[])[profileIndex]||'NPC',isEditing=save.textContent.trim()==='保存する',edit=isEditing?(root.dataset.editingId||new URLSearchParams(location.search).get('eventEdit')):'',id=edit&&data.npcDefinitions[edit]?edit:'event-'+crypto.randomUUID();
   data.npcDefinitions[id]={...(data.npcDefinitions[id]||{}),eventType:'warashibe',profileId,eventNpcName:'わらしべ'+name,firstMessage:form.elements.warashibeFirstMessage?.value||'',afterMessage:form.elements.warashibeAfterMessage?.value||'',cancelMessage:form.elements.warashibeCancelMessage?.value||'',afterEventAction:'cooldown',cooldownCondition:'time-5m',cooldownMessage:form.elements.warashibeCooldownMessage?.value||'',warashibe:{offerItem:form.elements.offerItem?.value||''}};
-  localStorage.setItem('nekosagasi-layout-v1',JSON.stringify(data));const response=await fetch('/api/layout',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(data)});if(!response.ok)throw new Error('save failed');
+   localStorage.setItem('nekosagasi-layout-v1',JSON.stringify(data));const response=await fetch('/api/layout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'upsert-event-npc',id,npc:data.npcDefinitions[id]})});if(!response.ok)throw new Error('save failed');
   root.dataset.editingId=id;window.showSaveSuccess?.();setTimeout(()=>{const url=new URL(location.href);url.searchParams.set('eventEdit',id);location.href=url.toString()},300);
  }catch{alert('保存できませんでした。通信を確認してもう一度試してください。')}
 },{capture:true});

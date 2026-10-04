@@ -4,12 +4,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const endpoint = 'https://nekosagasi.pages.dev/api/layout';
-const stamp = '20261003';
+const stamp = '20261004';
 const output = path.resolve(__dirname, '..', '復元用');
 const jsonFile = path.join(output, `安定版レイアウト_${stamp}.json`);
 const textFile = path.join(output, `マップ接続・配置情報_${stamp}.txt`);
 const npcTextFile = path.join(output, `NPC情報_${stamp}.txt`);
 const latestNpcTextFile = path.resolve(__dirname, '..', 'NPC情報.txt');
+const latestMapTextFile = path.resolve(__dirname, '..', 'マップ情報.txt');
 
 const format = value => Number.isInteger(value) ? String(value) : Number(value).toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
 const point = item => `マップ${Number(item.map) + 1} (${format(item.x)}, ${format(item.y)}) size=${item.sizeStage ?? 0}`;
@@ -41,7 +42,7 @@ const point = item => `マップ${Number(item.map) + 1} (${format(item.x)}, ${fo
     `完全復元データ: 復元用/安定版レイアウト_${stamp}.json`,
     '',
     '【復元の基準】',
-    `このテキストは確認用。復元は同じフォルダのJSONを scripts/restore-stable-layout-${stamp}.js で送信する。`,
+    `このテキストは確認用。復元用の完全データは同じフォルダのJSONに保存している。`,
     '復元前の公開状態も 復元用/復元前レイアウト_YYYYMMDD-HHMMSS.json としてローカルへ退避される。',
     '',
     `【出入口】 ${gateways.length}件`,
@@ -65,8 +66,20 @@ const point = item => `マップ${Number(item.map) + 1} (${format(item.x)}, ${fo
   for (const [id, definition] of Object.entries(definitions)) {
     lines.push(`${id} / ${definition.eventNpcName || '名称未設定'} / ${definition.eventType || '種類未設定'} / profile=${definition.profileId || 'なし'}`);
   }
-  lines.push('', `collision: ${JSON.stringify(layout.collision || {})}`, `mapIndexSchema: ${layout.mapIndexSchema || '未設定'}`, '');
-  fs.writeFileSync(textFile, lines.join('\n'), 'utf8');
+  lines.push('', '【コリジョン完全情報】');
+  lines.push(JSON.stringify(layout.collision || {}, null, 2));
+  lines.push('', '【出入り口・NPCを含む配置オブジェクト完全情報】');
+  lines.push(JSON.stringify(objects, null, 2));
+  lines.push('', '【建築完全情報】');
+  lines.push(JSON.stringify(buildings, null, 2));
+  lines.push('', '【建築の当たり判定・通行可能・建築内出入口の完全情報】');
+  lines.push(JSON.stringify(layout.buildingDefinitions || {}, null, 2));
+  lines.push('', '【NPC完全情報】');
+  lines.push(JSON.stringify(definitions, null, 2));
+  lines.push('', `mapIndexSchema: ${layout.mapIndexSchema || '未設定'}`, '');
+  const mapText = lines.join('\n');
+  fs.writeFileSync(textFile, mapText, 'utf8');
+  fs.writeFileSync(latestMapTextFile, mapText, 'utf8');
   const quote = value => JSON.stringify(String(value ?? ''));
   const outcome = value => {
     const data = value || {}, result = [];
@@ -120,7 +133,7 @@ const point = item => `マップ${Number(item.map) + 1} (${format(item.x)}, ${fo
     const registrations = definition.itemRegistrations || (definition.requiredItem ? [{requiredItem: definition.requiredItem, itemArt: definition.itemArt, receiveMessage: definition.receiveMessage}] : []);
     if (registrations.length) {
       npcLines.push('【物を渡す】');
-      for (const [index, item] of registrations.entries()) npcLines.push(`登録 ${index + 1}: 渡す物=${item.requiredItem || '未設定'} / 絵=${item.itemArt || 'なし'} / 言葉=${quote(item.receiveMessage || '')}`);
+      for (const [index, item] of registrations.entries()) npcLines.push(`登録 ${index + 1}: 渡す物=${item.requiredItem || '未設定'} / 絵=${item.itemArt || 'なし'} / 言葉=${quote(item.receiveMessage || '')} / 結果=${outcome(item.outcome)}`);
     }
     if ((definition.quizzes || []).length) {
       npcLines.push(`【クイズ】 ${definition.quizzes.length}問`);
@@ -145,6 +158,7 @@ const point = item => `マップ${Number(item.map) + 1} (${format(item.x)}, ${fo
   fs.writeFileSync(latestNpcTextFile, npcText, 'utf8');
   console.log(`saved ${jsonFile}`);
   console.log(`saved ${textFile}`);
+  console.log(`saved ${latestMapTextFile}`);
   console.log(`saved ${npcTextFile}`);
   console.log(`saved ${latestNpcTextFile}`);
 })();
