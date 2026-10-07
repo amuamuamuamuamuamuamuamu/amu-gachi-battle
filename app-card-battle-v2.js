@@ -1148,6 +1148,38 @@ async function runnerGame(){
     mapTransition(targetMap,targetWorldX/2,(mapHeight()-targetWorldY)/2);
     setTimeout(centerTarget,650);
   };
+  let buildingMapEventBusy=false;
+  const showBuildingMapEvent=({building,finalVisible,origin,waitForArtwork=true})=>{
+    if(buildingMapEventBusy||backgroundPropEventBusy){setTimeout(()=>showBuildingMapEvent({building,finalVisible,origin,waitForArtwork}),120);return}
+    if(waitForArtwork){setTimeout(()=>showBuildingMapEvent({building,finalVisible,origin,waitForArtwork:false}),100);return}
+    const artwork=characterNpcWrap.querySelector('.character-npc-result-bubble[data-word-artwork="1"],.character-npc-result-bubble[data-item-gift-artwork="1"]');
+    if(artwork){const waitForArtworkClose=new MutationObserver(()=>{if(artwork.isConnected)return;waitForArtworkClose.disconnect();showBuildingMapEvent({building,finalVisible,origin,waitForArtwork:false})});waitForArtworkClose.observe(characterNpcWrap,{childList:true});return}
+    buildingMapEventBusy=true;
+    const targetMap=Number(building.map),targetWorldX=Number(building.x)/100*WORLD_WIDTH,targetWorldY=(100-Number(building.y))/100*mapHeight();
+    const effect=document.createElement('section');
+    effect.className='background-prop-event';
+    effect.setAttribute('role','status');
+    effect.innerHTML='<i class="background-prop-event-rays"></i><span class="background-prop-event-sparkles" aria-hidden="true">'+Array.from({length:26},()=>'<b style="--x:'+(4+Math.random()*92).toFixed(1)+'%;--y:'+(4+Math.random()*92).toFixed(1)+'%;--s:'+(14+Math.random()*25).toFixed(0)+'px;--d:'+(0.7+Math.random()*1.25).toFixed(2)+'s;--delay:'+(-Math.random()*1.2).toFixed(2)+'s">✦</b>').join('')+'</span>';
+    const centerTarget=()=>{
+      const width=canvas.width/devicePixelRatio,height=canvas.height/devicePixelRatio,viewW=width/cameraZoom,viewH=height/cameraZoom;
+      cameraMode='event-focus';manualCameraActive=false;
+      scroll=Math.max(0,Math.min(WORLD_WIDTH-viewW,targetWorldX-viewW/2));
+      cameraOffsetY=Math.max(0,Math.min(mapHeight()-viewH,targetWorldY-viewH/2));
+      playerHiddenForNpcFocus=true;characterNpcWrap.append(effect);
+      requestAnimationFrame(()=>{building.visible=finalVisible});
+      setTimeout(returnToOrigin,2000);
+    };
+    const returnToOrigin=()=>{
+      effect.remove();inputLock.remove();
+      const restore=()=>{x=origin.x;y=origin.y;targetX=x;targetY=y;scroll=origin.scroll;cameraOffsetY=origin.cameraY;cameraZoom=origin.zoom;pinchZoom=cameraZoom;cameraMode=origin.mode;manualCameraActive=false;playerHiddenForNpcFocus=false;buildingMapEventBusy=false};
+      if(mapIndex===origin.map){restore();return}
+      mapTransition(origin.map,(origin.x+PLAYER_SIZE/2)/2,(mapHeight()-(origin.y+PLAYER_SIZE/2))/2);setTimeout(restore,650);
+    };
+    const inputLock=document.createElement('i');inputLock.className='background-prop-event-lock';inputLock.setAttribute('aria-hidden','true');inputLock.addEventListener('pointerdown',event=>{event.preventDefault();event.stopPropagation()},{capture:true});characterNpcWrap.append(inputLock);
+    joyX=0;joyY=0;playerMoving=false;targetX=x;targetY=y;tapPath.length=0;npcEventInputLockedUntil=performance.now()+4300;
+    if(targetMap===mapIndex){centerTarget();return}
+    mapTransition(targetMap,targetWorldX/2,(mapHeight()-targetWorldY)/2);setTimeout(centerTarget,650);
+  };
   const applyBackgroundPropOutcome=out=>{if(!out?.backgroundProp)return;const prop=placedBackgroundProps.find(item=>item.id===out.backgroundProp);if(!prop)return;const mode=out.backgroundPropMode||'a-to-b',previous=prop.state||'a';if(mode==='a-to-b')prop.state='b';else if(mode==='b-to-a')prop.state='a';else if(mode==='hide'){if(previous!=='hidden')prop.hiddenState=previous;prop.state='hidden'}else if(mode==='show')prop.state=prop.hiddenState||'a';const phrase=prop.transitionWords?.[{"a-to-b":'aToB',"b-to-a":'bToA',hide:'hide',show:'show'}[mode]];showBackgroundPropEvent({prop,phrase})};requestAnimationFrame(updateBackgroundProps);
   // 吹き出しの外側をタップした時も閉じられる。吹き出し内の選択・画像操作はそのまま残す。
   document.addEventListener('pointerdown',event=>{const selector='.birth-message,.word-get-bubble,.cat-npc-bubble,.character-npc-bubble,.character-npc-result-bubble,.passage-guard-bubble,.npc-item-get,.monster-journal-reader';if(document.querySelector('.character-npc-bubble[data-word-making="1"],.character-npc-result-bubble[data-word-artwork="1"]'))return;if(event.target.closest(selector))return;document.querySelectorAll(selector).forEach(bubble=>{if(bubble.classList.contains('npc-card-battle-intro'))return;if(bubble.classList.contains('npc-item-get'))bubble.click();else bubble.remove()})},true);
@@ -1531,6 +1563,24 @@ const focusUpdatedNpcArrival=npc=>{if(npc)npc.visible=true};
   // NPCツールでアイテムが未設定の組み合わせは、旧NPCの既定アイテムを出さず、そのままイベントを完了する。
   // NPCイベントで非表示の建造物が表示になった時だけ、建造物名の吹き出しを出す。
   const buildingVisibilityState=new Map(placedBuildings.map(building=>[building.id,building.visible!==false]));
+  // 建築物のオン／オフも、背景小物と同じく現物へカメラを寄せてから切り替える。
+  const buildingMapEventState=new Map(placedBuildings.map(building=>[building.id,building.visible!==false]));
+  setInterval(()=>placedBuildings.forEach(building=>{
+    const visible=building.visible!==false,wasVisible=buildingMapEventState.get(building.id);
+    if(wasVisible===undefined){buildingMapEventState.set(building.id,visible);return}
+    if(building._mapEventFinalVisible!==undefined){
+      if(visible===building._mapEventFinalVisible)delete building._mapEventFinalVisible;
+      buildingMapEventState.set(building.id,visible);
+      return;
+    }
+    if(visible===wasVisible)return;
+    buildingMapEventState.set(building.id,visible);
+    const origin={map:mapIndex,x,y,scroll,cameraY:cameraOffsetY,zoom:cameraZoom,mode:cameraMode};
+    building._mapEventFinalVisible=visible;
+    building.visible=!visible;
+    // 表示の場合は既存の建築物到着カメラと重ねず、その到着直後に切替演出を始める。
+    setTimeout(()=>showBuildingMapEvent({building,finalVisible:visible,origin}),visible?1100:0);
+  }),40);
   setInterval(()=>{placedBuildings.forEach(building=>{const visible=building.visible!==false,wasVisible=buildingVisibilityState.get(building.id);if(wasVisible===false&&visible){const bubble=document.createElement('div');bubble.className='birth-message';bubble.textContent=String(building.name||building.graphic||'建造物').replace(/\.[^.]+$/,'')+'が現れた';characterNpcWrap.append(bubble);setTimeout(()=>bubble.remove(),2600)}buildingVisibilityState.set(building.id,visible)})},100);
   // 配置ツールで選んだNPCごとの初期表示／非表示を、ゲーム開始時にそのまま反映する。
   const npcInitialVisibilityTimer=setInterval(()=>{if(characterNpcs.length!==10)return;characterNpcs.forEach(npc=>{const placement=placedObjects.find(item=>item.kind==='npc'&&item.npc===npc.number);if(placement)npc.visible=placement.visible!==false});clearInterval(npcInitialVisibilityTimer)},50);
