@@ -1583,7 +1583,7 @@ const focusUpdatedNpcArrival=npc=>{if(npc)npc.visible=true};
     // 表示の場合は既存の建築物到着カメラと重ねず、その到着直後に切替演出を始める。
     setTimeout(()=>showBuildingMapEvent({building,finalVisible:visible,origin}),visible?1100:0);
   }),40);
-  setInterval(()=>{placedBuildings.forEach(building=>{const visible=building.visible!==false,wasVisible=buildingVisibilityState.get(building.id);if(wasVisible===false&&visible){const bubble=document.createElement('div');bubble.className='birth-message';bubble.textContent=String(building.name||building.graphic||'建造物').replace(/\.[^.]+$/,'')+'が現れた';characterNpcWrap.append(bubble);setTimeout(()=>bubble.remove(),2600)}buildingVisibilityState.set(building.id,visible)})},100);
+  setInterval(()=>{placedBuildings.forEach(building=>{if(building._mapEventFinalVisible!==undefined)return;const visible=building.visible!==false,wasVisible=buildingVisibilityState.get(building.id);if(wasVisible!==undefined&&wasVisible!==visible){const bubble=document.createElement('div'),name=String(building.name||building.graphic||'建造物').replace(/\.[^.]+$/,'');bubble.className='birth-message';bubble.textContent=name+(visible?'が現れた':'が無くなった');characterNpcWrap.append(bubble);setTimeout(()=>bubble.remove(),2600)}buildingVisibilityState.set(building.id,visible)})},100);
   // 配置ツールで選んだNPCごとの初期表示／非表示を、ゲーム開始時にそのまま反映する。
   const npcInitialVisibilityTimer=setInterval(()=>{if(characterNpcs.length!==10)return;characterNpcs.forEach(npc=>{const placement=placedObjects.find(item=>item.kind==='npc'&&item.npc===npc.number);if(placement)npc.visible=placement.visible!==false});clearInterval(npcInitialVisibilityTimer)},50);
   // 選択肢は npc/kotobaatume.txt の「言葉NPC」欄を正として読み込む。
