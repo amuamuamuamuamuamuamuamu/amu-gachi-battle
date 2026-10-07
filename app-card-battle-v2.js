@@ -1089,6 +1089,8 @@ async function runnerGame(){
   const paintCollisionOverlay=()=>{if(disableLegacyFrameLayers)return;const overlay=collisionOverlay[mapIndex];if(overlay&&collisionCtx){const w=canvas.width/devicePixelRatio,h=canvas.height/devicePixelRatio;collisionCanvas.width=canvas.width;collisionCanvas.height=canvas.height;collisionCanvas.style.width=canvas.clientWidth+'px';collisionCanvas.style.height=canvas.clientHeight+'px';collisionCtx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);collisionCtx.clearRect(0,0,w,h);const z=cameraZoom,mh=mapHeight(),cameraY=cameraMode==='free'?cameraOffsetY:Math.max(0,Math.min(mh-h/z,y-h/2+PLAYER_SIZE/2));collisionCtx.globalAlpha=.35;collisionCtx.drawImage(overlay,-scroll*z,h-mh*z+cameraY*z,WORLD_WIDTH*z,mh*z)}requestAnimationFrame(paintCollisionOverlay)};requestAnimationFrame(paintCollisionOverlay);
   const characterNpcWrap=document.querySelector('.runner-wrap');
   const backgroundPropSrc=(name,state='a')=>'背景小物/'+(state==='b'?'b/':'')+encodeURIComponent(name)+'.png',placedBackgroundProps=placedObjects.filter(item=>item.kind==='background-prop'),backgroundPropLayer=document.createElement('div');backgroundPropLayer.className='background-prop-layer';placedBackgroundProps.forEach(prop=>{const image=document.createElement('img');image.className='background-prop';image.src=backgroundPropSrc(prop.prop||'草',prop.state||'a');image.dataset.state=prop.state||'a';image.alt='';prop.image=image;backgroundPropLayer.append(image)});characterNpcWrap.append(backgroundPropLayer);const updateBackgroundProps=()=>{const rect=canvas.getBoundingClientRect(),w=canvas.width/devicePixelRatio,h=canvas.height/devicePixelRatio,z=cameraZoom,mh=mapHeight(),cameraY=(cameraMode==='free'||cameraMode==='moveTarget')?cameraOffsetY:y+PLAYER_SIZE/2-h/(2*z),sx=rect.width/w,sy=rect.height/h;placedBackgroundProps.forEach(prop=>{const image=prop.image;if(!image)return;const state=prop.state||'a',active=state!=='hidden'&&Number(prop.map)===mapIndex,worldX=Number(prop.x)/100*WORLD_WIDTH,worldY=(100-Number(prop.y))/100*mh,size=Math.max(28,112*z*sx*Number(prop.displayScale||1));image.hidden=!active;if(image.dataset.state!==state){image.src=backgroundPropSrc(prop.prop||'草',state);image.dataset.state=state}image.style.left=(worldX-scroll)*z*sx+'px';image.style.top=(h-(worldY-cameraY)*z)*sy+'px';image.style.width=size+'px';image.style.height=size+'px'});requestAnimationFrame(updateBackgroundProps)};
+  // 変化後の画像読み込み待ちで1秒表示が短くならないよう、A/Bを先に読み込む。
+  placedBackgroundProps.forEach(prop=>['a','b'].forEach(state=>{const preload=new Image();preload.src=backgroundPropSrc(prop.prop||'草',state)}));
   let backgroundPropEventBusy=false; // 背景小物の注目演出中は入力を止める。
   const showBackgroundPropEvent=({prop,phrase,waitForArtwork=true})=>{
     if(backgroundPropEventBusy)return;
@@ -1119,15 +1121,10 @@ async function runnerGame(){
     effect.querySelector('p').textContent=phrase?.trim()||'';
     if(!phrase?.trim())effect.querySelector('p').hidden=true;
     const centerTarget=()=>{
-      const width=canvas.width/devicePixelRatio,height=canvas.height/devicePixelRatio,viewW=width/cameraZoom,viewH=height/cameraZoom;
-      cameraMode='event-focus';manualCameraActive=false;
-      scroll=Math.max(0,Math.min(WORLD_WIDTH-viewW,targetWorldX-viewW/2));
-      cameraOffsetY=Math.max(0,Math.min(mapHeight()-viewH,targetWorldY-viewH/2));
-      playerHiddenForNpcFocus=true;
-      characterNpcWrap.append(effect);
-      // 中央で変化前を1秒見せてから、残り1秒を変化後で見せる。
-      setTimeout(()=>{prop.state=finalState},1000);
-      setTimeout(returnToOrigin,2000);
+      const width=canvas.width/devicePixelRatio,height=canvas.height/devicePixelRatio,viewW=width/cameraZoom,viewH=height/cameraZoom,startScroll=scroll,startCameraY=cameraOffsetY,endScroll=Math.max(0,Math.min(WORLD_WIDTH-viewW,targetWorldX-viewW/2)),endCameraY=Math.max(0,Math.min(mapHeight()-viewH,targetWorldY-viewH/2)),started=performance.now();
+      cameraMode='free';manualCameraActive=false;
+      const move=now=>{const t=Math.min(1,(now-started)/360),ease=t*t*(3-2*t);scroll=startScroll+(endScroll-startScroll)*ease;cameraOffsetY=startCameraY+(endCameraY-startCameraY)*ease;if(t<1){requestAnimationFrame(move);return}playerHiddenForNpcFocus=true;characterNpcWrap.append(effect);setTimeout(()=>{prop.state=finalState},1000);setTimeout(returnToOrigin,2000)};
+      requestAnimationFrame(move);
     };
     const returnToOrigin=()=>{
       effect.remove();
@@ -1162,14 +1159,10 @@ async function runnerGame(){
     effect.setAttribute('role','status');
     effect.innerHTML='<i class="background-prop-event-rays"></i><span class="background-prop-event-sparkles" aria-hidden="true">'+Array.from({length:26},()=>'<b style="--x:'+(4+Math.random()*92).toFixed(1)+'%;--y:'+(4+Math.random()*92).toFixed(1)+'%;--s:'+(14+Math.random()*25).toFixed(0)+'px;--d:'+(0.7+Math.random()*1.25).toFixed(2)+'s;--delay:'+(-Math.random()*1.2).toFixed(2)+'s">✦</b>').join('')+'</span>';
     const centerTarget=()=>{
-      const width=canvas.width/devicePixelRatio,height=canvas.height/devicePixelRatio,viewW=width/cameraZoom,viewH=height/cameraZoom;
-      cameraMode='event-focus';manualCameraActive=false;
-      scroll=Math.max(0,Math.min(WORLD_WIDTH-viewW,targetWorldX-viewW/2));
-      cameraOffsetY=Math.max(0,Math.min(mapHeight()-viewH,targetWorldY-viewH/2));
-      playerHiddenForNpcFocus=true;characterNpcWrap.append(effect);
-      // 中央で変化前を1秒見せてから、残り1秒を変化後で見せる。
-      setTimeout(()=>{building.visible=finalVisible},1000);
-      setTimeout(returnToOrigin,2000);
+      const width=canvas.width/devicePixelRatio,height=canvas.height/devicePixelRatio,viewW=width/cameraZoom,viewH=height/cameraZoom,startScroll=scroll,startCameraY=cameraOffsetY,endScroll=Math.max(0,Math.min(WORLD_WIDTH-viewW,targetWorldX-viewW/2)),endCameraY=Math.max(0,Math.min(mapHeight()-viewH,targetWorldY-viewH/2)),started=performance.now();
+      cameraMode='free';manualCameraActive=false;
+      const move=now=>{const t=Math.min(1,(now-started)/360),ease=t*t*(3-2*t);scroll=startScroll+(endScroll-startScroll)*ease;cameraOffsetY=startCameraY+(endCameraY-startCameraY)*ease;if(t<1){requestAnimationFrame(move);return}playerHiddenForNpcFocus=true;characterNpcWrap.append(effect);setTimeout(()=>{building.visible=finalVisible},1000);setTimeout(returnToOrigin,2000)};
+      requestAnimationFrame(move);
     };
     const returnToOrigin=()=>{
       effect.remove();inputLock.remove();
@@ -1580,8 +1573,8 @@ const focusUpdatedNpcArrival=npc=>{if(npc)npc.visible=true};
     const origin={map:mapIndex,x,y,scroll,cameraY:cameraOffsetY,zoom:cameraZoom,mode:cameraMode};
     building._mapEventFinalVisible=visible;
     building.visible=!visible;
-    // 表示の場合は既存の建築物到着カメラと重ねず、その到着直後に切替演出を始める。
-    setTimeout(()=>showBuildingMapEvent({building,finalVisible:visible,origin}),visible?1100:0);
+    // 旧演出の待ち時間には依存せず、この演出自身の中央到着を2秒の起点にする。
+    showBuildingMapEvent({building,finalVisible:visible,origin});
   }),40);
   setInterval(()=>{placedBuildings.forEach(building=>{if(building._mapEventFinalVisible!==undefined)return;const visible=building.visible!==false,wasVisible=buildingVisibilityState.get(building.id);if(wasVisible!==undefined&&wasVisible!==visible){const bubble=document.createElement('div'),name=String(building.name||building.graphic||'建造物').replace(/\.[^.]+$/,'');bubble.className='birth-message';bubble.textContent=name+(visible?'が現れた':'が無くなった');characterNpcWrap.append(bubble);setTimeout(()=>bubble.remove(),2600)}buildingVisibilityState.set(building.id,visible)})},100);
   // 配置ツールで選んだNPCごとの初期表示／非表示を、ゲーム開始時にそのまま反映する。
