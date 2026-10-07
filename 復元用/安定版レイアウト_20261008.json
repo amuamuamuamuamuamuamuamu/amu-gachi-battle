@@ -748,24 +748,6 @@
       "map": 4,
       "x": 18.13,
       "y": 52.51
-    },
-    {
-      "id": "candy-shop-outside",
-      "kind": "gateway",
-      "map": 4,
-      "link": 18,
-      "x": 34,
-      "y": 36,
-      "sizeStage": 1
-    },
-    {
-      "id": "candy-shop-inside",
-      "kind": "gateway",
-      "map": 24,
-      "link": 18,
-      "x": 50,
-      "y": 90,
-      "sizeStage": 1
     }
   ],
   "collision": {

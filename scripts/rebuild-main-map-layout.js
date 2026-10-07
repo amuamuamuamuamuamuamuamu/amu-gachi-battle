@@ -23,7 +23,7 @@ const gridLinks = [
 const buildingLinks = [
   ['cafe', 0, 13, 28, 39, 9], ['game-center', 1, 14, 27, 74, 10],
   ['apartment', 2, 15, 26, 35, 25], ['lab', 2, 16, 67, 35, 14],
-  ['office', 3, 17, 65, 37, 17], ['candy', 4, 18, 34, 36, 24],
+  ['office', 3, 17, 65, 37, 17],
   ['hydroponics', 5, 19, 25, 35, 23], ['gallery', 5, 20, 73, 36, 19],
   ['school', 6, 21, 66, 33, 18], ['zoo', 6, 22, 27, 72, 21],
   ['toilet', 7, 23, 72, 31, 20], ['hot-spring', 8, 24, 70, 37, 15],

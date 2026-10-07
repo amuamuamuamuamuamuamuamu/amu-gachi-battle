@@ -7,7 +7,7 @@
 このテキストは確認用。復元用の完全データは同じフォルダのJSONに保存している。
 復元前の公開状態も 復元用/復元前レイアウト_YYYYMMDD-HHMMSS.json としてローカルへ退避される。
 
-【出入口】 52件
+【出入口】 50件
 リンク 1: main1-right / マップ1 (99.89, 34.1) size=3  <->  main2-left / マップ2 (0, 54.9) size=3
 リンク 2: main2-right / マップ2 (100, 56.44) size=3  <->  main3-left / マップ3 (0, 66.23) size=3
 リンク 3: main4-right / マップ4 (100, 58.33) size=3  <->  main5-left / マップ5 (2, 50) size=3
@@ -23,7 +23,6 @@
 リンク 15: apartment-outside / マップ3 (31.69, 41.78) size=1  <->  apartment-inside / マップ26 (52.41, 99.12) size=4  <->  ecc3c83c-6c2b-4d8d-9a49-cf54dede0a79 / マップ4 (35.31, 45.83) size=1
 リンク 16: lab-outside / マップ3 (60, 38) size=1  <->  lab-inside / マップ15 (50, 92.65) size=1
 リンク 17: company-inside / マップ18 (51.08, 90.5) size=1
-リンク 18: candy-shop-outside / マップ5 (34, 36) size=1  <->  candy-shop-inside / マップ25 (50, 90) size=1
 リンク 19: hydroponics-outside / マップ6 (35.2, 34.43) size=1  <->  hydroponics-inside / マップ24 (50, 92) size=4
 リンク 20: gallery-outside / マップ6 (70.18, 37.72) size=1
 リンク 21: school-outside / マップ7 (70.39, 30.37) size=1  <->  school-inside / マップ19 (48.92, 93.73) size=1
@@ -15624,24 +15623,6 @@ event-9a2685dd-6df4-4dc3-bedc-3ef5a11ccb4e / 言葉NPC駄菓子屋のおばあ�
     "map": 4,
     "x": 18.13,
     "y": 52.51
-  },
-  {
-    "id": "candy-shop-outside",
-    "kind": "gateway",
-    "map": 4,
-    "link": 18,
-    "x": 34,
-    "y": 36,
-    "sizeStage": 1
-  },
-  {
-    "id": "candy-shop-inside",
-    "kind": "gateway",
-    "map": 24,
-    "link": 18,
-    "x": 50,
-    "y": 90,
-    "sizeStage": 1
   }
 ]
 
