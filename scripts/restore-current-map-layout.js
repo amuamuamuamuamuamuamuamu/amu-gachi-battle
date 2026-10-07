@@ -21,8 +21,8 @@ const gateways = [
   gate('restored-apartment-outside', 2, 15, 31.69, 41.78, 1), gate('restored-apartment-inside', 25, 15, 50, 90),
   gate('restored-lab-outside', 2, 16, 59.87, 38.27, 1), gate('restored-lab-inside', 14, 16, 50, 90),
   gate('restored-office-outside', 3, 17, 65, 37), gate('restored-office-inside', 17, 17, 50, 90),
-  // 駄菓子屋は使わないため入口を削除し、同じメイン5側の場所を爪痕のリビングへの入口に差し替える。
-  gate('restored-living-from-candy-outside', 4, 18, 34, 36), gate('restored-living-from-candy-inside', 26, 18, 50, 90),
+  // メイン5の店舗入口は駄菓子屋への往復用として維持する。
+  gate('restored-candy-outside', 4, 18, 34, 36), gate('restored-candy-inside', 24, 18, 50, 90),
   gate('restored-hydroponics-outside', 5, 19, 25, 35), gate('restored-hydroponics-inside', 23, 19, 50, 90),
   gate('restored-gallery-outside', 5, 20, 73, 36), gate('restored-gallery-inside', 19, 20, 50, 90),
   gate('restored-school-outside', 6, 21, 66, 33), gate('restored-school-inside', 18, 21, 50, 90),

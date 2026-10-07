@@ -13,8 +13,8 @@ match = re.search(r"const maps=(\[[^\n]+\]);", picker)
 if not match:
     raise SystemExit("Map picker catalog not found")
 names = ast.literal_eval(match.group(1))
-if len(names) != 26:
-    raise SystemExit(f"Expected 26 maps, found {len(names)}")
+if len(names) != 36:
+    raise SystemExit(f"Expected 36 maps, found {len(names)}")
 
 scores = []
 for index, name in enumerate(names):

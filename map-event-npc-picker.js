@@ -6,7 +6,7 @@
   const select=document.querySelector('#npcPicker'),visual=document.querySelector('.npc-picker-visual');
   if(!select||!visual)return;
   let data;try{data=JSON.parse(localStorage.getItem(key)||'{}')}catch{return}
-  // NPCツールで登録した全種類を配置候補にする。イベント種別で絞ると、わらしべ長者などが消えてしまう。
+  // NPCツールで登録した全種類を配置候補にする。イベント種別で絞ると、ぶつぶつ交換などが消えてしまう。
   const entries=Object.entries(data.npcDefinitions||{}).filter(([,n])=>n?.eventNpcName&&n?.profileId).map(([id,n])=>[id,{...n,eventNpcName:n.eventType==='cardbattle'?String(n.eventNpcName).replace(/^カードバトル/,'カード'):n.eventNpcName}]);
   if(!entries.length)return;
   const signature=entries.map(([id,n])=>id+'|'+n.profileId+'|'+n.eventNpcName).join('||');
@@ -44,8 +44,8 @@
 
 /* 現在のマップ素材一覧を、ゲームと配置ツールで同じ順番に表示する。 */
 (()=>{
- const maps=['メインマップ1-1','メインマップ1-2','メインマップ1-3','メインマップ1-4','メインマップ1-5','メインマップ1-6','メインマップ1-7','メインマップ1-8','メインマップ1-9','おしゃれカフェ','ゲームセンター','コンビニ','スーパー','やくざの事務所','ラボ','温泉_男女4区画','家族の家','会社','学校','現代美術館','公衆トイレ','室内動物園','図書館','水耕栽培工場','駄菓子屋','和室のボロアパート','爪痕のリビング','植物の広場_メイン3右','植物の広場_メイン4左','植物の広場_メイン6右','植物の広場_メイン8下','植物の広場_メイン9下','謎の闇儀式','ハンバーガー屋_店内'];
- const asset=index=>'/game-assets/maps/'+(index===0?'m1-game.webp':'map'+(index+1)+'-game.webp')+'?v=20260929-map-npc-refresh-1';
+ const maps=['メインマップ1-1','メインマップ1-2','メインマップ1-3','メインマップ1-4','メインマップ1-5','メインマップ1-6','メインマップ1-7','メインマップ1-8','メインマップ1-9','おしゃれカフェ','ゲームセンター','コンビニ','スーパー','やくざの事務所','ラボ','温泉_男女4区画','家族の家','会社','学校','現代美術館','公衆トイレ','室内動物園','図書館','水耕栽培工場','駄菓子屋','和室のボロアパート','爪痕のリビング','植物の広場_メイン3右','植物の広場_メイン4左','植物の広場_メイン6右','植物の広場_メイン8下','植物の広場_メイン9下','謎の闇儀式','ハンバーガー屋_店内','鑑定屋','宇宙船船内'];
+ const asset=index=>'/game-assets/maps/'+(index===0?'m1-game.webp':'map'+(index+1)+'-game.webp')+'?v='+(index===35?'20261007-spaceship-room-layout-2':index===24?'20261007-dagashiya-interior-1':'20261007-dropbox-maps-sync-1');
  const mount=()=>{
   const select=document.querySelector('#layoutMap'),visual=document.querySelector('.map-picker-visual');
   if(!select||!visual||select.dataset.currentMapCatalog)return;

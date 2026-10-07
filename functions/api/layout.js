@@ -1,5 +1,5 @@
 const headers={"content-type":"application/json; charset=utf-8","cache-control":"no-store"};
-const npcEventTypes=new Set(["words","normal","item","ultimate","survey","quiz","cardbattle","warashibe"]);
+const npcEventTypes=new Set(["words","normal","item","ultimate","survey","quiz","cardbattle","warashibe","appraisal"]);
 const isRegisteredEventNpc=(id,npc)=>id.startsWith("event-")&&npc&&typeof npc==="object"&&!Array.isArray(npc)&&npcEventTypes.has(npc.eventType)&&typeof npc.profileId==="string"&&npc.profileId;
 const cleanNpcs=layout=>{layout.npcDefinitions=Object.fromEntries(Object.entries(layout.npcDefinitions||{}).filter(([id,npc])=>isRegisteredEventNpc(id,npc)));const ids=new Set(Object.keys(layout.npcDefinitions));if(Array.isArray(layout.objects))layout.objects=layout.objects.filter(item=>item?.kind!=="npc"||ids.has(item.npc));return layout};
 

@@ -13,9 +13,9 @@ $names = @(
   '水耕栽培工場', '駄菓子屋', '和室のボロアパート',
   '爪痕のリビング', '植物の広場_メイン3右', '植物の広場_メイン4左',
   '植物の広場_メイン6右', '植物の広場_メイン8下', '植物の広場_メイン9下',
-  '謎の闇儀式', 'ハンバーガー屋_店内'
+  '謎の闇儀式', 'ハンバーガー屋_店内', '鑑定屋', '宇宙船船内'
 )
-if ($names.Count -ne 34) { throw 'マップ一覧は34枚である必要があります。' }
+if ($names.Count -ne 36) { throw 'マップ一覧は36枚である必要があります。' }
 $maps = for ($index = 0; $index -lt $names.Count; $index++) {
   $output = if ($index -eq 0) { 'm1-game.webp' } else { 'map' + ($index + 1) + '-game.webp' }
   @{ Source = $names[$index] + '.png'; Output = $output }

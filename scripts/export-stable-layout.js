@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const endpoint = 'https://nekosagasi.pages.dev/api/layout';
-const stamp = '20261004';
+const stamp = '20261008';
 const output = path.resolve(__dirname, '..', '復元用');
 const jsonFile = path.join(output, `安定版レイアウト_${stamp}.json`);
 const textFile = path.join(output, `マップ接続・配置情報_${stamp}.txt`);
@@ -119,9 +119,9 @@ const point = item => `マップ${Number(item.map) + 1} (${format(item.x)}, ${fo
     }
     if (definition.eventType === 'warashibe' || definition.warashibe) {
       const trade = definition.warashibe || {};
-      npcLines.push('【わらしべ長者】');
+      npcLines.push('【ぶつぶつ交換】');
       npcLines.push(`相手が出す物: ${trade.offerItem || '未設定'}`);
-      npcLines.push('候補: プレイヤーのわらしべアイテム1個が、相手の物より1ランク低い以上');
+      npcLines.push('候補: プレイヤーの所持アイテムから、相手の物より1ランク低い以上の好きな1個を選ぶ');
       npcLines.push('成立率: 70%（30%は「うーん、やめとく。」）');
     }
     if ((definition.word1 || []).length || (definition.word2 || []).length) {
