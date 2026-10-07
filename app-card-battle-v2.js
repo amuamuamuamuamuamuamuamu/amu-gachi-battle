@@ -1530,7 +1530,7 @@ const focusUpdatedNpcArrival=npc=>{if(npc)npc.visible=true};
     if(runnerWrap.querySelector('.mission-terminal-bubble'))return;
     freezePlayerForScreenTap();
     const missions=[
-      {id:'m1',title:'おじさんが寒そう',map:'マップ/メインマップ1-1.png',npc:'npc/サウナおじさん.png',alt:'サウナおじさん',defaultMap:0},
+      {id:'m1',title:'寒そうなおじさんを温めてみる',map:'マップ/メインマップ1-1.png',npc:'npc/サウナおじさん.png',alt:'サウナおじさん',defaultMap:0},
       {id:'m2',title:'みどりおじさんとなかよくなる',place:'場所　ボロボロ和室',map:'マップ/和室のボロアパート.png',npc:'npc/緑おじさん.png',alt:'みどりおじさん',defaultMap:25},
       {id:'m3',title:'カフェ店員の悩みを聞く',place:'場所　カフェ',map:'マップ/おしゃれカフェ.png',npc:'npc/カフェ店員.png',alt:'カフェ店員',defaultMap:9}
     ];
@@ -1545,7 +1545,7 @@ const focusUpdatedNpcArrival=npc=>{if(npc)npc.visible=true};
     missions.forEach((mission,index)=>{
       const card=document.createElement('article');
       card.className='mission-terminal-card'+(index===0?' is-selected':'');
-      card.innerHTML='<div class="mission-terminal-scene"><img class="mission-terminal-map" alt=""><img class="mission-terminal-npc" alt=""></div><div class="mission-terminal-copy"><span>やること</span><h3></h3><button type="button">出かける</button></div>';
+      card.innerHTML='<div class="mission-terminal-scene"><img class="mission-terminal-map" alt=""><img class="mission-terminal-npc" alt=""></div><div class="mission-terminal-copy"><h3></h3><button type="button">出かける</button></div>';
       card.querySelector('.mission-terminal-map').src=encodeURI(mission.map);
       card.querySelector('.mission-terminal-npc').src=encodeURI(mission.npc);
       card.querySelector('.mission-terminal-npc').alt=mission.alt;
