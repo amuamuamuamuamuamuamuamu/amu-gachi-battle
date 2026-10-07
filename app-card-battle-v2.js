@@ -1089,16 +1089,29 @@ async function runnerGame(){
   const paintCollisionOverlay=()=>{if(disableLegacyFrameLayers)return;const overlay=collisionOverlay[mapIndex];if(overlay&&collisionCtx){const w=canvas.width/devicePixelRatio,h=canvas.height/devicePixelRatio;collisionCanvas.width=canvas.width;collisionCanvas.height=canvas.height;collisionCanvas.style.width=canvas.clientWidth+'px';collisionCanvas.style.height=canvas.clientHeight+'px';collisionCtx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);collisionCtx.clearRect(0,0,w,h);const z=cameraZoom,mh=mapHeight(),cameraY=cameraMode==='free'?cameraOffsetY:Math.max(0,Math.min(mh-h/z,y-h/2+PLAYER_SIZE/2));collisionCtx.globalAlpha=.35;collisionCtx.drawImage(overlay,-scroll*z,h-mh*z+cameraY*z,WORLD_WIDTH*z,mh*z)}requestAnimationFrame(paintCollisionOverlay)};requestAnimationFrame(paintCollisionOverlay);
   const characterNpcWrap=document.querySelector('.runner-wrap');
   const backgroundPropSrc=(name,state='a')=>'背景小物/'+(state==='b'?'b/':'')+encodeURIComponent(name)+'.png',placedBackgroundProps=placedObjects.filter(item=>item.kind==='background-prop'),backgroundPropLayer=document.createElement('div');backgroundPropLayer.className='background-prop-layer';placedBackgroundProps.forEach(prop=>{const image=document.createElement('img');image.className='background-prop';image.src=backgroundPropSrc(prop.prop||'草',prop.state||'a');image.dataset.state=prop.state||'a';image.alt='';prop.image=image;backgroundPropLayer.append(image)});characterNpcWrap.append(backgroundPropLayer);const updateBackgroundProps=()=>{const rect=canvas.getBoundingClientRect(),w=canvas.width/devicePixelRatio,h=canvas.height/devicePixelRatio,z=cameraZoom,mh=mapHeight(),cameraY=(cameraMode==='free'||cameraMode==='moveTarget')?cameraOffsetY:y+PLAYER_SIZE/2-h/(2*z),sx=rect.width/w,sy=rect.height/h;placedBackgroundProps.forEach(prop=>{const image=prop.image;if(!image)return;const state=prop.state||'a',active=state!=='hidden'&&Number(prop.map)===mapIndex,worldX=Number(prop.x)/100*WORLD_WIDTH,worldY=(100-Number(prop.y))/100*mh,size=Math.max(28,112*z*sx*Number(prop.displayScale||1));image.hidden=!active;if(image.dataset.state!==state){image.src=backgroundPropSrc(prop.prop||'草',state);image.dataset.state=state}image.style.left=(worldX-scroll)*z*sx+'px';image.style.top=(h-(worldY-cameraY)*z)*sy+'px';image.style.width=size+'px';image.style.height=size+'px'});requestAnimationFrame(updateBackgroundProps)};
-  let backgroundPropEventBusy=false;
-  const showBackgroundPropEvent=({prop,phrase})=>{
+  let backgroundPropEventBusy=false; // 背景小物の注目演出中は入力を止める。
+  const showBackgroundPropEvent=({prop,phrase,waitForArtwork=true})=>{
     if(backgroundPropEventBusy)return;
+    // 言葉完成のカットイン直後は、イラストが同じ処理の少し後に追加される。
+    if(waitForArtwork){setTimeout(()=>showBackgroundPropEvent({prop,phrase,waitForArtwork:false}),100);return}
+    // 結果イラストを閉じるまでは、背景小物の変化を見せない。
+    const artwork=characterNpcWrap.querySelector('.character-npc-result-bubble[data-word-artwork="1"],.character-npc-result-bubble[data-item-gift-artwork="1"]');
+    if(artwork){
+      const waitForArtworkClose=new MutationObserver(()=>{
+        if(artwork.isConnected)return;
+        waitForArtworkClose.disconnect();
+        showBackgroundPropEvent({prop,phrase,waitForArtwork:false});
+      });
+      waitForArtworkClose.observe(characterNpcWrap,{childList:true});
+      return;
+    }
     backgroundPropEventBusy=true;
     const origin={map:mapIndex,x,y,scroll,cameraY:cameraOffsetY,zoom:cameraZoom,mode:cameraMode};
     const targetMap=Number(prop.map),targetWorldX=Number(prop.x)/100*WORLD_WIDTH,targetWorldY=(100-Number(prop.y))/100*mapHeight();
     const effect=document.createElement('section');
     effect.className='background-prop-event';
     effect.setAttribute('role','status');
-    effect.innerHTML='<i class="background-prop-event-rays"></i><img alt="'+String(prop.prop||'背景小物').replace(/[&<>"']/g,'')+'" src="'+backgroundPropSrc(prop.prop||'草',prop.state||'a')+'"><p></p>';
+    effect.innerHTML='<i class="background-prop-event-rays"></i><span class="background-prop-event-sparkles" aria-hidden="true">'+Array.from({length:26},()=>'<b style="--x:'+(4+Math.random()*92).toFixed(1)+'%;--y:'+(4+Math.random()*92).toFixed(1)+'%;--s:'+(14+Math.random()*25).toFixed(0)+'px;--d:'+(0.7+Math.random()*1.25).toFixed(2)+'s;--delay:'+(-Math.random()*1.2).toFixed(2)+'s">✦</b>').join('')+'</span><img alt="'+String(prop.prop||'背景小物').replace(/[&<>"']/g,'')+'" src="'+backgroundPropSrc(prop.prop||'草',prop.state||'a')+'"><p></p>';
     effect.querySelector('p').textContent=phrase?.trim()||'';
     if(!phrase?.trim())effect.querySelector('p').hidden=true;
     const centerTarget=()=>{
@@ -1112,6 +1125,7 @@ async function runnerGame(){
     };
     const returnToOrigin=()=>{
       effect.remove();
+      inputLock.remove();
       const restore=()=>{
         x=origin.x;y=origin.y;targetX=x;targetY=y;scroll=origin.scroll;cameraOffsetY=origin.cameraY;cameraZoom=origin.zoom;pinchZoom=cameraZoom;cameraMode=origin.mode;manualCameraActive=false;playerHiddenForNpcFocus=false;backgroundPropEventBusy=false;
       };
@@ -1119,6 +1133,12 @@ async function runnerGame(){
       mapTransition(origin.map,(origin.x+PLAYER_SIZE/2)/2,(mapHeight()-(origin.y+PLAYER_SIZE/2))/2);
       setTimeout(restore,650);
     };
+    const inputLock=document.createElement('i');
+    inputLock.className='background-prop-event-lock';
+    inputLock.setAttribute('aria-hidden','true');
+    inputLock.addEventListener('pointerdown',event=>{event.preventDefault();event.stopPropagation()},{capture:true});
+    characterNpcWrap.append(inputLock);
+    joyX=0;joyY=0;playerMoving=false;targetX=x;targetY=y;tapPath.length=0;npcEventInputLockedUntil=performance.now()+4300;
     if(targetMap===mapIndex){centerTarget();return}
     mapTransition(targetMap,targetWorldX/2,(mapHeight()-targetWorldY)/2);
     setTimeout(centerTarget,650);
