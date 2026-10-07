@@ -1125,7 +1125,8 @@ async function runnerGame(){
       cameraOffsetY=Math.max(0,Math.min(mapHeight()-viewH,targetWorldY-viewH/2));
       playerHiddenForNpcFocus=true;
       characterNpcWrap.append(effect);
-      requestAnimationFrame(()=>{prop.state=finalState});
+      // 中央で変化前を1秒見せてから、残り1秒を変化後で見せる。
+      setTimeout(()=>{prop.state=finalState},1000);
       setTimeout(returnToOrigin,2000);
     };
     const returnToOrigin=()=>{
@@ -1166,7 +1167,8 @@ async function runnerGame(){
       scroll=Math.max(0,Math.min(WORLD_WIDTH-viewW,targetWorldX-viewW/2));
       cameraOffsetY=Math.max(0,Math.min(mapHeight()-viewH,targetWorldY-viewH/2));
       playerHiddenForNpcFocus=true;characterNpcWrap.append(effect);
-      requestAnimationFrame(()=>{building.visible=finalVisible});
+      // 中央で変化前を1秒見せてから、残り1秒を変化後で見せる。
+      setTimeout(()=>{building.visible=finalVisible},1000);
       setTimeout(returnToOrigin,2000);
     };
     const returnToOrigin=()=>{
