@@ -1106,12 +1106,16 @@ async function runnerGame(){
       return;
     }
     backgroundPropEventBusy=true;
+    // 変化後の状態は先に保存されているため、カメラ到着までは配置物を直前の姿へ戻す。
+    // 到着後に実際のマップ上の画像だけを切り替える。
+    const finalState=prop.state||'a',shownFrom=finalState==='hidden'?(prop.hiddenState||'a'):(finalState==='b'?'a':'b');
+    prop.state=shownFrom;
     const origin={map:mapIndex,x,y,scroll,cameraY:cameraOffsetY,zoom:cameraZoom,mode:cameraMode};
     const targetMap=Number(prop.map),targetWorldX=Number(prop.x)/100*WORLD_WIDTH,targetWorldY=(100-Number(prop.y))/100*mapHeight();
     const effect=document.createElement('section');
     effect.className='background-prop-event';
     effect.setAttribute('role','status');
-    effect.innerHTML='<i class="background-prop-event-rays"></i><span class="background-prop-event-sparkles" aria-hidden="true">'+Array.from({length:26},()=>'<b style="--x:'+(4+Math.random()*92).toFixed(1)+'%;--y:'+(4+Math.random()*92).toFixed(1)+'%;--s:'+(14+Math.random()*25).toFixed(0)+'px;--d:'+(0.7+Math.random()*1.25).toFixed(2)+'s;--delay:'+(-Math.random()*1.2).toFixed(2)+'s">✦</b>').join('')+'</span><img alt="'+String(prop.prop||'背景小物').replace(/[&<>"']/g,'')+'" src="'+backgroundPropSrc(prop.prop||'草',prop.state||'a')+'"><p></p>';
+    effect.innerHTML='<i class="background-prop-event-rays"></i><span class="background-prop-event-sparkles" aria-hidden="true">'+Array.from({length:26},()=>'<b style="--x:'+(4+Math.random()*92).toFixed(1)+'%;--y:'+(4+Math.random()*92).toFixed(1)+'%;--s:'+(14+Math.random()*25).toFixed(0)+'px;--d:'+(0.7+Math.random()*1.25).toFixed(2)+'s;--delay:'+(-Math.random()*1.2).toFixed(2)+'s">✦</b>').join('')+'</span><p></p>';
     effect.querySelector('p').textContent=phrase?.trim()||'';
     if(!phrase?.trim())effect.querySelector('p').hidden=true;
     const centerTarget=()=>{
@@ -1121,6 +1125,7 @@ async function runnerGame(){
       cameraOffsetY=Math.max(0,Math.min(mapHeight()-viewH,targetWorldY-viewH/2));
       playerHiddenForNpcFocus=true;
       characterNpcWrap.append(effect);
+      requestAnimationFrame(()=>{prop.state=finalState});
       setTimeout(returnToOrigin,2000);
     };
     const returnToOrigin=()=>{
