@@ -1257,6 +1257,31 @@ const focusUpdatedNpcArrival=npc=>{if(npc)npc.visible=true};
   // カードバトルの起動処理は runnerGame の外にあるため、ゲーム固有の操作を橋渡しする。
   // 外側からローカル関数を直接呼ぶと、NPCを押した瞬間に ReferenceError で止まる。
   window.cardBattleNpcRuntime={freezePlayerForNpcEvent,keepPlayerStillAfterNpcEvent,getNpcCard};
+  // カード取得の画面が端末側のタップ処理で先に消えても、カードバトルの完了処理を必ず再開する。
+  const getNpcCardForBattle=window.cardBattleNpcRuntime.getNpcCard;
+  window.cardBattleNpcRuntime.getNpcCard=(cardId,onClose)=>{
+    let completed=false;
+    const finish=()=>{if(completed)return;completed=true;onClose?.()};
+    getNpcCardForBattle(cardId,finish);
+    setTimeout(finish,3000);
+  };
+  // クールタイムに入った直後の、結果を閉じるためのタップでは台詞を出さない。
+  // 結果UIがすべて閉じた次の操作から、通常どおりクールタイム台詞を表示する。
+  const armCooldownForNextTap=npc=>{
+    if(!npc?.cooldownActive||npc.cooldownTapArmed!==undefined)return;
+    npc.cooldownTapArmed=false;
+    const waitForEventClose=()=>{
+      if(document.querySelector('.character-npc-bubble,.character-npc-result-bubble,.word-made-cutin,.npc-item-get,.npc-card-get,.npc-item-interaction-lock,.warashibe-exchange-stage,.game-card-battle-overlay')){setTimeout(waitForEventClose,80);return}
+      setTimeout(()=>{npc.cooldownTapArmed=true},0);
+    };
+    waitForEventClose();
+  };
+  setInterval(()=>characterNpcs.forEach(npc=>{if(!npc.cooldownActive){delete npc.cooldownTapArmed;return}armCooldownForNextTap(npc)}),40);
+  ['pointerdown','click'].forEach(type=>window.addEventListener(type,event=>{
+    const image=event.target.closest?.('.character-npc'),npc=characterNpcs.find(candidate=>candidate.image===image);
+    if(!npc?.cooldownActive||npc.cooldownTapArmed!==false)return;
+    event.preventDefault();event.stopImmediatePropagation();
+  },true));
   const rememberQuizPlayerPosition=npc=>{if(!npc||!['quiz','survey','ultimate'].includes(npc.eventType))return;freezePlayerForNpcEvent(npc);npc.quizPlayerRestored=true};
   // 会話前のカメラ座標を残し、会話が閉じてもNPCの方へ勝手に寄らないようにする。
   let npcCameraAnchor=null;
