@@ -1,0 +1,20 @@
+.mission-clear-celebration{position:absolute;z-index:950;inset:0;overflow:hidden;display:grid;place-items:center;isolation:isolate;touch-action:none;cursor:pointer;color:#fff;background:radial-gradient(circle at 50% 45%,rgba(255,249,178,.42) 0 12%,transparent 37%),radial-gradient(circle at 50% 50%,#a823a4 0 10%,#380878 45%,#090124 100%);opacity:0;transform:scale(1.08);transition:opacity .28s ease,transform .55s cubic-bezier(.18,.9,.2,1)}
+.mission-clear-celebration.is-visible{opacity:1;transform:scale(1)}
+.mission-clear-celebration.is-closing{opacity:0;transform:scale(1.12)}
+.mission-clear-rays{position:absolute;z-index:-3;width:min(190vw,1100px);aspect-ratio:1;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,225,77,.42) 0 7deg,transparent 7deg 15deg);mask-image:radial-gradient(circle,transparent 0 12%,#000 48%,transparent 75%);animation:mission-clear-spin 16s linear infinite}
+.mission-clear-rings{position:absolute;z-index:-2;width:min(82vw,620px);aspect-ratio:1;border:clamp(6px,1.5vw,14px) double #ffd84a;border-radius:50%;box-shadow:0 0 0 7px rgba(255,255,255,.78),0 0 0 15px #ff8b17,0 0 45px 22px rgba(255,230,63,.72),inset 0 0 42px rgba(255,251,188,.75);animation:mission-clear-pulse 1.15s ease-in-out infinite alternate}
+.mission-clear-title{position:relative;z-index:5;width:min(94%,900px);padding:clamp(28px,6vw,70px) 10px;text-align:center;filter:drop-shadow(0 12px 10px rgba(0,0,0,.58));animation:mission-clear-enter .8s cubic-bezier(.18,1.4,.26,1) both}
+.mission-clear-title em{display:block;margin-bottom:clamp(10px,2.4vw,22px);color:#fff5a3;font:900 clamp(18px,5vw,44px)/1 sans-serif;letter-spacing:.13em;text-shadow:0 2px #7b3500,0 0 9px #fff,0 0 24px #ffad00}
+.mission-clear-title strong{display:block;font:1000 clamp(43px,12.5vw,112px)/.98 sans-serif;letter-spacing:-.07em;color:#fff;background:linear-gradient(180deg,#fff 0 9%,#fff99a 18%,#ffd51f 42%,#ff8700 60%,#fff5a3 78%,#d97500 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;-webkit-text-stroke:clamp(2px,.55vw,5px) #5b1a00;paint-order:stroke fill;text-shadow:0 5px 0 #7e2600,0 9px 0 #3d0747,0 0 10px #fff,0 0 28px #ffd900,0 0 60px #ff8a00;animation:mission-clear-title-glow .62s ease-in-out infinite alternate}
+.mission-clear-title small{display:block;margin-top:clamp(24px,6vw,52px);opacity:0;color:#fff8cb;font:800 clamp(14px,3.5vw,23px)/1 sans-serif;letter-spacing:.12em;text-shadow:0 2px 5px #26003f;transition:opacity .25s}
+.mission-clear-celebration.is-ready .mission-clear-title small{opacity:.9}
+.mission-clear-confetti,.mission-clear-stars{position:absolute;inset:0;pointer-events:none}
+.mission-clear-confetti i{position:absolute;top:-12%;left:var(--x);width:clamp(6px,1.5vw,13px);height:clamp(12px,3vw,25px);border-radius:2px;background:hsl(calc(var(--i)*47deg) 100% 62%);box-shadow:0 0 6px rgba(255,255,255,.9);animation:mission-clear-fall var(--d) linear infinite;animation-delay:calc(var(--i)*-.071s);transform:rotate(var(--r))}
+.mission-clear-stars i{position:absolute;left:var(--x);top:var(--y);color:#fff8a8;font-style:normal;font-size:clamp(14px,4vw,38px);text-shadow:0 0 8px #fff,0 0 18px #ffd900;animation:mission-clear-twinkle calc(.65s + var(--i)*.02s) ease-in-out infinite alternate;animation-delay:calc(var(--i)*-.09s)}
+@keyframes mission-clear-spin{to{transform:rotate(360deg)}}
+@keyframes mission-clear-pulse{to{transform:scale(1.08);filter:brightness(1.25)}}
+@keyframes mission-clear-enter{0%{transform:scale(.15) rotate(-7deg);opacity:0}68%{transform:scale(1.12) rotate(2deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+@keyframes mission-clear-title-glow{to{filter:brightness(1.22);text-shadow:0 5px 0 #7e2600,0 9px 0 #3d0747,0 0 17px #fff,0 0 42px #ffe600,0 0 78px #ff8a00}}
+@keyframes mission-clear-fall{to{top:112%;transform:translateX(var(--s)) rotate(calc(var(--r) + 540deg))}}
+@keyframes mission-clear-twinkle{to{transform:scale(1.8) rotate(25deg);opacity:.24}}
+@media (prefers-reduced-motion:reduce){.mission-clear-rays,.mission-clear-rings,.mission-clear-title strong,.mission-clear-confetti i,.mission-clear-stars i{animation-duration:3s}}

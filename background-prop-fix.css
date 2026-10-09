@@ -1,0 +1,9 @@
+.background-prop-event>.background-prop-event-canvas {
+  position: relative;
+  z-index: 3;
+  width: min(38vw, 220px);
+  height: min(38vw, 220px);
+  object-fit: contain;
+  filter: drop-shadow(0 5px 0 #6e4a11) drop-shadow(0 0 20px #fff);
+  animation: backgroundPropEventPop .34s ease-out both;
+}

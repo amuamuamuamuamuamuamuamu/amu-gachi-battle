@@ -1,0 +1,11 @@
+/* 物々交換の見出しは虹色ではなく、通常の読みやすい配色にする。 */
+.warashibe-exchange-stage>.warashibe-stage-title{
+  background:#fffaf0;
+  background-size:auto;
+  color:#24123d;
+  text-shadow:none;
+  box-shadow:0 0 0 3px #fff,0 5px 0 #48215f;
+  animation:warashibeTitlePop .65s ease-in-out infinite alternate;
+}
+
+.word-maker-dialog{z-index:180;display:grid;gap:10px;width:min(86vw,460px);padding:18px;background:#fffaf0;color:#24123d}.word-maker-dialog>strong{text-align:center;font-size:22px}.word-maker-dialog label{display:grid;gap:5px;font-weight:900}.word-maker-dialog select{width:100%;padding:11px;border:3px solid #24123d;border-radius:12px;background:#fff;color:#24123d;font:900 17px system-ui,"Noto Sans JP",sans-serif}.word-maker-dialog .character-npc-decide{width:100%;margin-top:4px}.npc-wordmaker-panel{display:block;margin-top:12px}.npc-wordmaker-panel p{line-height:1.55}.npc-wordmaker-panel label{display:grid;gap:5px;margin:10px 0;font-weight:900}.npc-wordmaker-panel input,.npc-wordmaker-panel textarea{box-sizing:border-box;width:100%;padding:9px;border:2px solid #78658d;border-radius:9px;font:inherit}.npc-wordmaker-panel button{padding:10px 14px;border:3px solid #24123d;border-radius:12px;background:#f06aa8;color:#fff;font-weight:900}
