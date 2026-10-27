@@ -26,13 +26,12 @@
     document.querySelectorAll('.variation-card[data-axis][data-child]').forEach(card => {
       const words = data.axes?.[Number(card.dataset.axis)]?.children?.[Number(card.dataset.child)];
       const manualSrc = words && manualImages[sentenceKey(words)];
-      const src = words && (manualSrc || images[sentenceKey(words)]);
+      // A manually shipped image is the fallback.  When the editor has just
+      // regenerated an illustration from its note, show that newer version.
+      const src = words && (images[sentenceKey(words)] || manualSrc);
       const existingImage = card.querySelector('img');
       if (!src) return;
-      if (existingImage) {
-        if (manualSrc) existingImage.src = src;
-        return;
-      }
+      if (existingImage) { existingImage.src = src; return; }
       const image = document.createElement('img');
       image.src = src; image.alt = `${words.join(' ')} のイベント画像`; image.loading = 'lazy';
       card.append(image);
