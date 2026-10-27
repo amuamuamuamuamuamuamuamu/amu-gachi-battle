@@ -26,14 +26,11 @@
     document.querySelectorAll('.variation-card[data-axis][data-child]').forEach(card => {
       const words = data.axes?.[Number(card.dataset.axis)]?.children?.[Number(card.dataset.child)];
       const manualSrc = words && manualImages[sentenceKey(words)];
-      // A regenerated image must win over an older hand-picked fallback.
-      // Otherwise the editor keeps showing the old illustration even though
-      // the revised image has already been saved to the shared store.
-      const src = words && (images[sentenceKey(words)] || manualSrc);
+      const src = words && (manualSrc || images[sentenceKey(words)]);
       const existingImage = card.querySelector('img');
       if (!src) return;
       if (existingImage) {
-        existingImage.src = src;
+        if (manualSrc) existingImage.src = src;
         return;
       }
       const image = document.createElement('img');
