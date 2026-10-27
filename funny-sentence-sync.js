@@ -1,6 +1,7 @@
 (() => {
   const key = 'nekosagasi-funny-sentences-v1';
   const endpoint = '/api/funny-sentences';
+  const localEditKey = `${key}-last-edit`;
   const originalSetItem = Storage.prototype.setItem;
   let syncing = false;
   let initialLoadFinished = false;
@@ -21,27 +22,35 @@
     }
   }
 
-  const initialContent = contentFingerprint(localStorage.getItem(key));
+  let lastObservedContent = contentFingerprint(localStorage.getItem(key));
+  const looksCorrupted = data => /\?{2,}/.test(JSON.stringify(data || {}));
+  const appliedCloudKey = `${key}-applied-cloud-content`;
 
-  function upload(value) {
+  function upload(value, immediately = false) {
     if (!value || syncing) return;
+    // The editor writes its initial local state while it boots. Never let
+    // that stale startup copy overwrite the shared data before it is read.
+    if (!initialLoadFinished) return;
     clearTimeout(timer);
-    timer = setTimeout(() => {
+    const send = () => {
       fetch(endpoint, {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ data: JSON.parse(value), updatedAt: Date.now() })
       }).catch(() => {});
-    }, 300);
+    };
+    if (immediately) send(); else timer = setTimeout(send, 300);
   }
 
   Storage.prototype.setItem = function (name, value) {
     originalSetItem.call(this, name, value);
     if (this === localStorage && name === key) {
-      // A save can happen while the first cloud read is still in flight.
-      // Remember it so an older response cannot replace the user's change.
-      if (!initialLoadFinished && contentFingerprint(value) !== initialContent) changedWhileLoading = true;
-      upload(value);
+      const nextContent = contentFingerprint(value);
+      if (!syncing && nextContent !== lastObservedContent) {
+        lastObservedContent = nextContent;
+        originalSetItem.call(localStorage, localEditKey, String(Date.now()));
+        upload(value);
+      }
     }
   };
 
@@ -49,17 +58,32 @@
     .then(response => response.ok ? response.json() : null)
     .then(saved => {
       const local = localStorage.getItem(key);
+      const localEditedAt = Number(localStorage.getItem(localEditKey) || 0);
+      const cloudEditedAt = Number(saved?.updatedAt || 0);
       initialLoadFinished = true;
-      if (saved?.data && !changedWhileLoading) {
+      // Do not replace a device's valid local data with a broken shared copy.
+      if (saved?.data && looksCorrupted(saved.data)) return;
+      if (saved?.data && local && localEditedAt > cloudEditedAt) {
+        // This device contains a newer explicit edit. Publish it instead of
+        // replacing it with the older shared snapshot.
+        upload(local, true);
+      } else if (saved?.data) {
         const cloud = JSON.stringify(saved.data);
         if (contentFingerprint(local) !== contentFingerprint(cloud)) {
           syncing = true;
           originalSetItem.call(localStorage, key, cloud);
           syncing = false;
-          location.reload();
+          lastObservedContent = contentFingerprint(cloud);
+          // Refresh only once while the page is still at its initial top
+          // position. This applies a newly shared list immediately without
+          // jumping a person who is already scrolling this long editor.
+          const cloudContent = contentFingerprint(cloud);
+          if (window.scrollY < 8 && sessionStorage.getItem(appliedCloudKey) !== cloudContent) {
+            sessionStorage.setItem(appliedCloudKey, cloudContent);
+            location.reload();
+          }
         }
       } else if (local) {
-        // Prefer an edit made on this screen over a stale initial response.
         upload(local);
       }
     })

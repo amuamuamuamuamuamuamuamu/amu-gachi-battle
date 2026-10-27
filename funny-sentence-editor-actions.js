@@ -3,51 +3,42 @@
   const readData = () => { try { return JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch { return {}; } };
   const writeData = data => localStorage.setItem(storageKey, JSON.stringify(data));
   const sentenceKey = words => words.join('|');
+  const manualImages = {
+  '不死身の|ビーバーが|ほどく': '/イベント画像/不死身のビーバーがほどく.webp?rev=20261027-global-v1',
+  '不死身の|ビーバーが|約束する': '/イベント画像/不死身のビーバーが約束する.webp?rev=20261027-restored-v1',
+  '不死身の|ビーバーが|負ける': '/イベント画像/不死身のビーバーが負ける.webp?rev=20261026-lite',
+  '高性能の|ビーバーが|ほどく': '/イベント画像/高性能のビーバーがほどく.webp?rev=20261026-lite',
+  '高性能の|ビーバーが|負ける': '/イベント画像/高性能のビーバーが負ける.webp?rev=20261027-restored-v1',
+  '高性能の|ビーバーが|約束する': '/イベント画像/高性能のビーバーが約束する.webp?rev=20261027-restored-v1',
+  '冷凍庫の|ナマケモノが|増える': '/イベント画像/冷凍庫のナマケモノが増える.webp?rev=20261026-sloth',
+  '冷凍庫の|ナマケモノが|勝つ': '/イベント画像/冷凍庫のナマケモノが勝つ.webp?rev=20261026-sloth',
+  '冷凍庫の|ナマケモノが|浮遊する': '/イベント画像/冷凍庫のナマケモノが浮遊する.webp?rev=20261026-sloth',
+  '天才の|ナマケモノが|増える': '/イベント画像/天才のナマケモノが増える.webp?rev=20261027-global-v1',
+  '天才の|ナマケモノが|勝つ': '/イベント画像/天才のナマケモノが勝つ.webp?rev=20261027-global-v1',
+  '天才の|ナマケモノが|浮遊する': '/イベント画像/天才のナマケモノが浮遊する.webp?rev=20261027-global-v1',
+  '空っぽの|ナマケモノが|増える': '/イベント画像/空っぽのナマケモノが増える.webp?rev=20261027-global-v1',
+  '空っぽの|ナマケモノが|勝つ': '/イベント画像/空っぽのナマケモノが勝つ.webp?rev=20261027-global-v1',
+  '空っぽの|ナマケモノが|浮遊する': '/イベント画像/空っぽのナマケモノが浮遊する.webp?rev=20261027-global-v1'
+  };
 
   function showGeneratedImages() {
     const data = readData(), images = data.generatedImages || {};
     document.querySelectorAll('.variation-card[data-axis][data-child]').forEach(card => {
       const words = data.axes?.[Number(card.dataset.axis)]?.children?.[Number(card.dataset.child)];
-      const src = words && images[sentenceKey(words)];
-      if (!src || card.querySelector('img')) return;
+      const manualSrc = words && manualImages[sentenceKey(words)];
+      const src = words && (manualSrc || images[sentenceKey(words)]);
+      const existingImage = card.querySelector('img');
+      if (!src) return;
+      if (existingImage) {
+        if (manualSrc) existingImage.src = src;
+        return;
+      }
       const image = document.createElement('img');
       image.src = src; image.alt = `${words.join(' ')} のイベント画像`; image.loading = 'lazy';
       card.append(image);
     });
   }
 
-  async function generateMissingImages(button) {
-    const data = readData(); data.generatedImages = data.generatedImages || {};
-    const sentences = (data.axes || []).flatMap(axis => axis.children || []).filter(words => !data.generatedImages[sentenceKey(words)]);
-    if (!sentences.length) { button.textContent = '画像はすべてあります'; return; }
-    button.disabled = true;
-    for (let index = 0; index < sentences.length; index += 1) {
-      const words = sentences[index]; button.textContent = `イラストを生成中… ${index + 1}/${sentences.length}`;
-      try {
-        const response = await fetch('/api/funny-image', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ sentence: words.join(' ') }) });
-        const result = await response.json();
-        if (!response.ok || !result.url) throw new Error(result.error || '生成できませんでした');
-        data.generatedImages[sentenceKey(words)] = result.url; writeData(data); showGeneratedImages();
-      } catch (error) { button.textContent = `生成を止めました: ${error.message}`; button.disabled = false; return; }
-    }
-    button.textContent = 'ない画像のイラストを生成'; button.disabled = false;
-  }
-
-  function addPersistentTools() {
-    const main = document.querySelector('main.wrap');
-    if (!main || document.querySelector('#funny-sentence-tools')) return;
-    const card = document.createElement('section');
-    card.className = 'card'; card.id = 'funny-sentence-tools';
-    const generate = document.createElement('button');
-    generate.id = 'generate-missing-images'; generate.className = 'save'; generate.textContent = 'ない画像のイラストを生成';
-    generate.onclick = () => generateMissingImages(generate);
-    const remove = document.createElement('button');
-    remove.id = 'delete-sentence'; remove.className = 'delete-axis'; remove.textContent = '選択中の文を削除';
-    remove.onclick = () => window.deleteFunnySentence?.();
-    card.append(generate, remove);
-    main.append(card);
-  }
-
-  addPersistentTools();
   showGeneratedImages();
+  new MutationObserver(showGeneratedImages).observe(document.querySelector('#app'), { childList: true, subtree: true });
 })();

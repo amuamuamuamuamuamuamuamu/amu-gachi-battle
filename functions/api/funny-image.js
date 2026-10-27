@@ -5,6 +5,7 @@ const headers = {
 };
 
 const keyFor = sentence => `funny-image:${encodeURIComponent(sentence)}`;
+const sentenceDataKey = 'funny-sentences-v1';
 
 function imageUrl(request, sentence) {
   const url = new URL(request.url);
@@ -26,13 +27,24 @@ export async function onRequest(context) {
     return new Response(bytes, { headers: { ...headers, 'content-type': 'image/jpeg' } });
   }
   if (request.method === 'POST') {
-    let sentence = '';
-    try { sentence = String((await request.json()).sentence || '').trim(); } catch {}
+    let body = {};
+    try { body = await request.json(); } catch {}
+    const sentence = String(body?.sentence || '').trim();
+    const force = body?.force === true;
     if (!sentence || sentence.length > 180) return Response.json({ error: '文を正しく入力してください' }, { status: 400, headers });
     const storageKey = keyFor(sentence);
-    if (await env.NEKOSAGASI_LAYOUT.get(storageKey)) return Response.json({ url: imageUrl(request, sentence), cached: true }, { headers });
+    if (!force && await env.NEKOSAGASI_LAYOUT.get(storageKey)) return Response.json({ url: imageUrl(request, sentence), cached: true }, { headers });
+    let globalInstruction = '', note = String(body?.note || '').trim();
+    try {
+      const shared = JSON.parse((await env.NEKOSAGASI_LAYOUT.get(sentenceDataKey)) || '{}');
+      globalInstruction = String(shared?.data?.globalImageInstruction || '').trim().slice(0, 1200);
+      if (!note) {
+        const words = (shared?.data?.axes || []).flatMap(axis => axis.children || []).find(parts => parts.join(' ') === sentence);
+        if (words) note = String(shared?.data?.variationNotes?.[words.join('|')] || '').trim();
+      }
+    } catch {}
     const result = await env.AI.run('@cf/black-forest-labs/flux-1-schnell', {
-      prompt: `A single polished cute Japanese game event illustration for the phrase: ${sentence}. Clear simple composition, thick clean outlines, vibrant colors, no text, no watermark.`,
+      prompt: `A single polished cute Japanese game event illustration for the phrase: ${sentence}. Clear simple composition, thick clean outlines, vibrant colors.${note ? ` Specific per-illustration direction that must be followed exactly: ${note}` : ' Do not add text or a watermark.'}${globalInstruction ? ` Global creative direction that must be followed: ${globalInstruction}` : ''}`,
       steps: 4
     });
     if (!result?.image) return Response.json({ error: '画像を生成できませんでした' }, { status: 502, headers });
