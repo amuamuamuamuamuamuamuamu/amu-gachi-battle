@@ -30,6 +30,7 @@ export async function onRequest(context) {
     let body = {};
     try { body = await request.json(); } catch {}
     const sentence = String(body?.sentence || '').trim();
+    const visualDescription = String(body?.visualDescription || sentence).trim();
     const force = body?.force === true;
     if (!sentence || sentence.length > 180) return Response.json({ error: '文を正しく入力してください' }, { status: 400, headers });
     const storageKey = keyFor(sentence);
@@ -43,10 +44,15 @@ export async function onRequest(context) {
         if (words) note = String(shared?.data?.variationNotes?.[words.join('|')] || '').trim();
       }
     } catch {}
-    const result = await env.AI.run('@cf/black-forest-labs/flux-1-schnell', {
-      prompt: `A single polished cute Japanese game event illustration for the phrase: ${sentence}. Clear simple composition, thick clean outlines, vibrant colors.${note ? ` Specific per-illustration direction that must be followed exactly: ${note}` : ' Do not add text or a watermark.'}${globalInstruction ? ` Global creative direction that must be followed: ${globalInstruction}` : ''}`,
-      steps: 4
-    });
+    let result;
+    try {
+      result = await env.AI.run('@cf/black-forest-labs/flux-1-schnell', {
+        prompt: `A single polished cute Japanese game event illustration for the phrase: ${visualDescription}. Clear simple composition, thick clean outlines, vibrant colors.${note ? ` Specific per-illustration direction that must be followed exactly: ${note}` : ' Do not add text or a watermark.'}${globalInstruction ? ` Global creative direction that must be followed: ${globalInstruction}` : ''}`,
+        steps: 4
+      });
+    } catch (error) {
+      return Response.json({ error: `画像生成に失敗しました: ${String(error?.message || error).slice(0, 240)}` }, { status: 502, headers });
+    }
     if (!result?.image) return Response.json({ error: '画像を生成できませんでした' }, { status: 502, headers });
     await env.NEKOSAGASI_LAYOUT.put(storageKey, result.image);
     return Response.json({ url: imageUrl(request, sentence) }, { headers });
