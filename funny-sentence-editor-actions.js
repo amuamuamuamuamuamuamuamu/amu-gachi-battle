@@ -8,17 +8,20 @@
   '不死身の|ビーバーが|約束する': '/イベント画像/不死身のビーバーが約束する.webp?rev=20261027-restored-v1',
   '不死身の|ビーバーが|負ける': '/イベント画像/不死身のビーバーが負ける.webp?rev=20261026-lite',
   '高性能の|ビーバーが|ほどく': '/イベント画像/高性能のビーバーがほどく.webp?rev=20261026-lite',
-  '高性能の|ビーバーが|負ける': '/イベント画像/高性能のビーバーが負ける.webp?rev=20261027-restored-v1',
-  '高性能の|ビーバーが|約束する': '/イベント画像/高性能のビーバーが約束する.webp?rev=20261027-restored-v1',
+  '高性能の|ビーバーが|負ける': '/イベント画像/備考修正_高性能のビーバーが負ける.png?rev=1',
+  '高性能の|ビーバーが|約束する': '/イベント画像/備考修正_高性能のビーバーが約束する.png?rev=1',
   '冷凍庫の|ナマケモノが|増える': '/イベント画像/冷凍庫のナマケモノが増える.webp?rev=20261026-sloth',
   '冷凍庫の|ナマケモノが|勝つ': '/イベント画像/冷凍庫のナマケモノが勝つ.webp?rev=20261026-sloth',
   '冷凍庫の|ナマケモノが|浮遊する': '/イベント画像/冷凍庫のナマケモノが浮遊する.webp?rev=20261026-sloth',
-  '天才の|ナマケモノが|増える': '/イベント画像/天才のナマケモノが増える.webp?rev=20261027-global-v1',
-  '天才の|ナマケモノが|勝つ': '/イベント画像/天才のナマケモノが勝つ.webp?rev=20261027-global-v1',
-  '天才の|ナマケモノが|浮遊する': '/イベント画像/天才のナマケモノが浮遊する.webp?rev=20261027-global-v1',
-  '空っぽの|ナマケモノが|増える': '/イベント画像/空っぽのナマケモノが増える.webp?rev=20261027-global-v1',
-  '空っぽの|ナマケモノが|勝つ': '/イベント画像/空っぽのナマケモノが勝つ.webp?rev=20261027-global-v1',
-  '空っぽの|ナマケモノが|浮遊する': '/イベント画像/空っぽのナマケモノが浮遊する.webp?rev=20261027-global-v1'
+  '天才の|ナマケモノが|増える': '/イベント画像/備考修正_天才のナマケモノが増える.png?rev=1',
+  '天才の|ナマケモノが|勝つ': '/イベント画像/備考修正_天才のナマケモノが勝つ.png?rev=1',
+  '天才の|ナマケモノが|浮遊する': '/イベント画像/備考修正_天才のナマケモノが浮遊する.png?rev=1',
+  '空っぽの|ナマケモノが|増える': '/イベント画像/備考修正_空っぽのナマケモノが増える.png?rev=1',
+  '空っぽの|ナマケモノが|勝つ': '/イベント画像/備考修正_空っぽのナマケモノが勝つ.png?rev=1',
+  '空っぽの|ナマケモノが|浮遊する': '/イベント画像/備考修正_空っぽのナマケモノが浮遊する.png?rev=1',
+  '未来の|たこ焼きが|転がる': '/イベント画像/備考修正_未来のたこ焼きが転がる.png?rev=1',
+  '未来の|たこ焼きが|目覚める': '/イベント画像/備考修正_未来のたこ焼きが目覚める.png?rev=1',
+  '未来の|たこ焼きが|叫ぶ': '/イベント画像/備考修正_未来のたこ焼きが叫ぶ.png?rev=1'
   };
 
   function showGeneratedImages() {
@@ -27,13 +30,13 @@
       const words = data.axes?.[Number(card.dataset.axis)]?.children?.[Number(card.dataset.child)];
       const manualSrc = words && manualImages[sentenceKey(words)];
       const key = words && sentenceKey(words);
-      // Only a variation with an active note may replace its shipped image.
-      // This keeps note-free variations stable when another card is redrawn.
-      const generatedForNote = key && data.variationNotes?.[key] && images[key];
-      const src = words && (generatedForNote || manualSrc || images[key]);
+      const src = words && (manualSrc || images[key]);
       const existingImage = card.querySelector('img');
       if (!src) return;
-      if (existingImage) { existingImage.src = src; return; }
+      if (existingImage) {
+        if (manualSrc) existingImage.src = src;
+        return;
+      }
       const image = document.createElement('img');
       image.src = src; image.alt = `${words.join(' ')} のイベント画像`; image.loading = 'lazy';
       card.append(image);
