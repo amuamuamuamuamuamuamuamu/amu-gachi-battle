@@ -26,13 +26,14 @@
     document.querySelectorAll('.variation-card[data-axis][data-child]').forEach(card => {
       const words = data.axes?.[Number(card.dataset.axis)]?.children?.[Number(card.dataset.child)];
       const manualSrc = words && manualImages[sentenceKey(words)];
-      const src = words && (manualSrc || images[sentenceKey(words)]);
+      const key = words && sentenceKey(words);
+      // Only a variation with an active note may replace its shipped image.
+      // This keeps note-free variations stable when another card is redrawn.
+      const generatedForNote = key && data.variationNotes?.[key] && images[key];
+      const src = words && (generatedForNote || manualSrc || images[key]);
       const existingImage = card.querySelector('img');
       if (!src) return;
-      if (existingImage) {
-        if (manualSrc) existingImage.src = src;
-        return;
-      }
+      if (existingImage) { existingImage.src = src; return; }
       const image = document.createElement('img');
       image.src = src; image.alt = `${words.join(' ')} のイベント画像`; image.loading = 'lazy';
       card.append(image);
